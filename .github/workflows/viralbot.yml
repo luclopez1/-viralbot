@@ -37,15 +37,17 @@ jobs:
 
       - name: Crear .env
         run: |
-          cat > .env << EOF
-          GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
-          YOUTUBE_API_KEY=${{ secrets.YOUTUBE_API_KEY }}
-          PEXELS_API_KEY=${{ secrets.PEXELS_API_KEY }}
-          OUTPUT_DIR=./videos_output
-          TEMP_DIR=./temp
-          VIDEO_DURATION_SECONDS=58
-          VIDEO_RESOLUTION=1080x1920
-          EOF
+          printf 'GEMINI_API_KEY=%s\n' "$GEMINI_API_KEY" > .env
+          printf 'YOUTUBE_API_KEY=%s\n' "$YOUTUBE_API_KEY" >> .env
+          printf 'PEXELS_API_KEY=%s\n' "$PEXELS_API_KEY" >> .env
+          echo 'OUTPUT_DIR=./videos_output' >> .env
+          echo 'TEMP_DIR=./temp' >> .env
+          echo 'VIDEO_DURATION_SECONDS=58' >> .env
+          echo 'VIDEO_RESOLUTION=1080x1920' >> .env
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
 
       - name: Generar y subir video
         run: python generate_content.py
