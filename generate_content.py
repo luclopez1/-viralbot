@@ -51,12 +51,13 @@ VIDEO_RESOLUTION = os.getenv("VIDEO_RESOLUTION", "1080x1920")
 OUTPUT_DIR.mkdir(exist_ok=True)
 TEMP_DIR.mkdir(exist_ok=True)
 
-# Inicializar cliente de Gemini (con SSL bypass para redes corporativas)
-_httpx_client = httpx.Client(verify=False)
-gemini_client = genai.Client(
-    api_key=GEMINI_API_KEY,
-    http_options={"httpxClient": _httpx_client}
-)
+def _get_gemini_client():
+    key = os.getenv("GEMINI_API_KEY")
+    try:
+        _httpx_client = httpx.Client(verify=False)
+        return genai.Client(api_key=key, http_options={"httpxClient": _httpx_client})
+    except Exception:
+        return genai.Client(api_key=key)
 
 
 NICHES = [
@@ -162,6 +163,7 @@ def generate_script_with_claude(topic: str):
     }}
     """
 
+    gemini_client = _get_gemini_client()
     response = gemini_client.models.generate_content(
         model="gemini-2.5-flash-lite",
         contents=prompt
