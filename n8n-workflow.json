@@ -1,0 +1,103 @@
+{
+  "name": "YouTube Video Generator - Automatic Daily",
+  "nodes": [
+    {
+      "parameters": {
+        "interval": [
+          {
+            "unit": "hours",
+            "value": 8
+          }
+        ]
+      },
+      "id": "scheduler",
+      "name": "Schedule",
+      "type": "n8n-nodes-base.schedule",
+      "typeVersion": 1,
+      "position": [
+        250,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "command": "cd C:\\Users\\luclo\\youtube-ia-automation && python generate_content.py"
+      },
+      "id": "execute-script",
+      "name": "Execute Python Script",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        500,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Parsear output del script\nconst output = $input.all();\nreturn output;"
+      },
+      "id": "process-output",
+      "name": "Process Output",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        750,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "chatbotId": "{{ $env.DISCORD_WEBHOOK_ID }}",
+        "message": "🎬 Nuevo video generado y listo para subir a YouTube!"
+      },
+      "id": "discord-notification",
+      "name": "Discord Notification (Optional)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1000,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "scheduler": {
+      "main": [
+        [
+          {
+            "node": "execute-script",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "execute-script": {
+      "main": [
+        [
+          {
+            "node": "process-output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "process-output": {
+      "main": [
+        [
+          {
+            "node": "discord-notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "saveManualExecutions": true,
+    "executionOrder": "v1"
+  }
+}

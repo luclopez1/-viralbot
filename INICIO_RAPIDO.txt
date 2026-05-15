@@ -1,0 +1,97 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║                   SISTEMA AUTOMATIZADO YOUTUBE IA                         ║
+║                     INICIO RAPIDO (2 MINUTOS)                             ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+CARPETA: C:\Users\luclo\youtube-ia-automation\
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. INSTALA FFMPEG (5 minutos)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Windows:
+  1. Ve a: https://ffmpeg.org/download.html
+  2. Descarga "full" (la mas grande)
+  3. Extrae a C:\ffmpeg
+  4. Anade a PATH: Abre PowerShell como admin y ejecuta:
+     [Environment]::SetEnvironmentVariable("Path", "$env:Path;C:\ffmpeg\bin", [EnvironmentVariableTarget]::Machine)
+  5. Verifica: ffmpeg -version
+
+Or (si tienes Chocolatey):
+  choco install ffmpeg
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2. OBTEN LAS 3 API KEYS (3 minutos)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+A) Claude (Anthropic)
+   https://console.anthropic.com
+   → API Keys → Create Key → Copia la clave
+
+B) YouTube
+   https://console.cloud.google.com
+   → Crea proyecto → Habilita "YouTube Data API v3" → Crea credenciales
+
+C) Pexels
+   https://www.pexels.com/api/
+   → Request API Key (al instante)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+3. CONFIGURA .env (1 minuto)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Abre: C:\Users\luclo\youtube-ia-automation\.env
+
+Y rellena:
+  ANTHROPIC_API_KEY=sk-ant-...
+  YOUTUBE_API_KEY=AIza...
+  PEXELS_API_KEY=563492ad...
+
+Guarda.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+4. GENERA TU PRIMER VIDEO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Abre PowerShell o CMD en la carpeta:
+  cd C:\Users\luclo\youtube-ia-automation
+  python generate_content.py
+
+Espera 1-2 minutos... ¡Tu video estara en: videos_output/
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+5. OPCIONAL: AUTOMATIZAR
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Para generar 3+ videos por dia:
+
+  npm install -g n8n
+  n8n start
+
+Luego crea un workflow con un cronograma (cada 8 horas).
+
+╔════════════════════════════════════════════════════════════════════════════╗
+║ LISTO! TU SISTEMA ESTA FUNCIONANDO.                                       ║
+║                                                                            ║
+║ Cada vez que ejecutes generate_content.py, obtendras:                     ║
+║   - 1 video de 60 segundos                                                ║
+║   - Guion generado con Claude IA                                          ║
+║   - Voz en off en espanol                                                 ║
+║   - Imagenes stock gratis                                                 ║
+║   - Listo para subir a YouTube                                            ║
+║                                                                            ║
+║ COSTO: $0/mes (todo gratis)                                               ║
+║ CAPACIDAD: Ilimitados videos                                              ║
+║ TIEMPO: 1-2 minutos por video                                             ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+MAS INFORMACION:
+  - Lee COMIENZA_AQUI.md (completo)
+  - Lee API_SETUP.md (detalles de API keys)
+  - Lee INSTALACION_WINDOWS.md (si tienes problemas)
+
+VERIFICACION RAPIDA:
+  python verify_setup.py
+
+Si todo aparece en [OK], ya puedes generar videos!
+

@@ -1,0 +1,51 @@
+name: ViralBot - Generar y Subir Short
+
+on:
+  schedule:
+    - cron: '0 7 * * *'   # 08:00 hora España (UTC+1)
+    - cron: '0 11 * * *'  # 12:00
+    - cron: '0 15 * * *'  # 16:00
+    - cron: '0 18 * * *'  # 19:00
+    - cron: '0 21 * * *'  # 22:00
+  workflow_dispatch:       # Permite ejecutarlo manualmente también
+
+jobs:
+  generate-and-upload:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Instalar FFmpeg
+        run: sudo apt-get install -y ffmpeg
+
+      - name: Instalar Python y dependencias
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalar paquetes
+        run: pip install -r requirements.txt
+
+      - name: Crear archivos de credenciales
+        run: |
+          echo "${{ secrets.YOUTUBE_TOKEN }}" > youtube_token.json
+          echo "${{ secrets.YOUTUBE_CREDENTIALS }}" > youtube_credentials.json
+          mkdir -p temp videos_output logs
+
+      - name: Crear .env
+        run: |
+          cat > .env << EOF
+          GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+          YOUTUBE_API_KEY=${{ secrets.YOUTUBE_API_KEY }}
+          PEXELS_API_KEY=${{ secrets.PEXELS_API_KEY }}
+          OUTPUT_DIR=./videos_output
+          TEMP_DIR=./temp
+          VIDEO_DURATION_SECONDS=58
+          VIDEO_RESOLUTION=1080x1920
+          EOF
+
+      - name: Generar y subir video
+        run: python generate_content.py
