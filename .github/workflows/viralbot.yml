@@ -40,11 +40,16 @@ jobs:
           YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
         run: |
           python3 -c "
-import os
-with open('youtube_token.json', 'w') as f:
-    f.write(os.environ['YOUTUBE_TOKEN'])
-with open('youtube_credentials.json', 'w') as f:
-    f.write(os.environ['YOUTUBE_CREDENTIALS'])
+import os, json
+def clean_and_write(env_var, path):
+    raw = os.environ[env_var].strip().strip(\"'\\\"\")
+    # Validar que es JSON valido
+    json.loads(raw)
+    with open(path, 'w') as f:
+        f.write(raw)
+clean_and_write('YOUTUBE_TOKEN', 'youtube_token.json')
+clean_and_write('YOUTUBE_CREDENTIALS', 'youtube_credentials.json')
+print('Credenciales escritas correctamente')
 "
           mkdir -p temp videos_output logs
 
