@@ -35,9 +35,17 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Crear archivos de credenciales
+        env:
+          YOUTUBE_TOKEN: ${{ secrets.YOUTUBE_TOKEN }}
+          YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
         run: |
-          echo '${{ secrets.YOUTUBE_TOKEN }}' > youtube_token.json
-          echo '${{ secrets.YOUTUBE_CREDENTIALS }}' > youtube_credentials.json
+          python3 -c "
+import os
+with open('youtube_token.json', 'w') as f:
+    f.write(os.environ['YOUTUBE_TOKEN'])
+with open('youtube_credentials.json', 'w') as f:
+    f.write(os.environ['YOUTUBE_CREDENTIALS'])
+"
           mkdir -p temp videos_output logs
 
       - name: Crear .env
