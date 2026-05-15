@@ -418,7 +418,12 @@ def upload_to_youtube(video_path: str, title: str, description: str, tags: str):
             print("[ERROR] No hay token de YouTube. Ejecuta primero: python setup_youtube_auth.py")
             return False
 
-        creds = Credentials.from_authorized_user_file(TOKEN_FILE, SCOPES)
+        with open(TOKEN_FILE, 'r') as f:
+            raw = f.read().strip()
+            # Limpiar posibles comillas envolventes del secret de CI
+            if raw.startswith(("'", '"')) and raw.endswith(("'", '"')):
+                raw = raw[1:-1]
+        creds = Credentials.from_authorized_user_info(json.loads(raw), SCOPES)
 
         # Renovar token si ha expirado
         if creds.expired and creds.refresh_token:
