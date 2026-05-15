@@ -165,7 +165,7 @@ def generate_script_with_claude(topic: str):
 
     gemini_client = _get_gemini_client()
     response = gemini_client.models.generate_content(
-        model="gemini-2.5-flash-lite",
+        model="gemini-2.0-flash",
         contents=prompt
     )
     response_text = response.text
