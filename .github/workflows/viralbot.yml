@@ -9,6 +9,11 @@ on:
     - cron: '0 21 * * *'  # 22:00
   workflow_dispatch:       # Permite ejecutarlo manualmente también
 
+env:
+  GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+  YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+  PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+
 jobs:
   generate-and-upload:
     runs-on: ubuntu-latest
@@ -31,27 +36,25 @@ jobs:
 
       - name: Crear archivos de credenciales
         run: |
-          echo "${{ secrets.YOUTUBE_TOKEN }}" > youtube_token.json
-          echo "${{ secrets.YOUTUBE_CREDENTIALS }}" > youtube_credentials.json
+          echo '${{ secrets.YOUTUBE_TOKEN }}' > youtube_token.json
+          echo '${{ secrets.YOUTUBE_CREDENTIALS }}' > youtube_credentials.json
           mkdir -p temp videos_output logs
 
       - name: Crear .env
         run: |
-          printf 'GEMINI_API_KEY=%s\n' "$GEMINI_API_KEY" > .env
-          printf 'YOUTUBE_API_KEY=%s\n' "$YOUTUBE_API_KEY" >> .env
-          printf 'PEXELS_API_KEY=%s\n' "$PEXELS_API_KEY" >> .env
-          echo 'OUTPUT_DIR=./videos_output' >> .env
-          echo 'TEMP_DIR=./temp' >> .env
-          echo 'VIDEO_DURATION_SECONDS=58' >> .env
-          echo 'VIDEO_RESOLUTION=1080x1920' >> .env
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
-          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+          echo "GEMINI_API_KEY=${GEMINI_API_KEY}" > .env
+          echo "YOUTUBE_API_KEY=${YOUTUBE_API_KEY}" >> .env
+          echo "PEXELS_API_KEY=${PEXELS_API_KEY}" >> .env
+          echo "OUTPUT_DIR=./videos_output" >> .env
+          echo "TEMP_DIR=./temp" >> .env
+          echo "VIDEO_DURATION_SECONDS=58" >> .env
+          echo "VIDEO_RESOLUTION=1080x1920" >> .env
+
+      - name: Verificar env
+        run: |
+          echo "GEMINI key set: $([ -n "$GEMINI_API_KEY" ] && echo YES || echo NO)"
+          echo "YOUTUBE key set: $([ -n "$YOUTUBE_API_KEY" ] && echo YES || echo NO)"
+          cat .env | sed 's/=.*/=***/'
 
       - name: Generar y subir video
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
-          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
         run: python generate_content.py
