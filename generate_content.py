@@ -193,21 +193,64 @@ def generate_script_with_claude(topic: str):
     return content
 
 
-def generate_speech_with_edge_tts(text: str, output_path: str):
+def _format_srt_time(seconds: float) -> str:
+    h = int(seconds // 3600)
+    m = int((seconds % 3600) // 60)
+    s = int(seconds % 60)
+    ms = int((seconds % 1) * 1000)
+    return f"{h:02d}:{m:02d}:{s:02d},{ms:03d}"
+
+
+def generate_speech_with_gtts(text: str, output_path: str):
     """
-    Genera voz usando Edge TTS (gratis, sin limites)
+    Genera voz usando gTTS (Google TTS) — funciona en cloud/CI sin restricciones
     """
-    print("[*] Generando voz en off...")
+    print("[*] Generando voz en off con gTTS...")
 
     try:
-        # Instalar edge-tts si no está disponible
-        try:
-            import edge_tts
-        except ImportError:
-            print("[*] Instalando edge-tts...")
-            subprocess.run([sys.executable, "-m", "pip", "install", "edge-tts", "-q"])
-            import edge_tts
+        from gtts import gTTS
 
+        tts = gTTS(text=text, lang='es', slow=False)
+        tts.save(output_path)
+        print(f"[OK] Voz generada: {output_path}")
+
+        # Generar SRT aproximado basado en palabras
+        srt_path = output_path.replace(".mp3", ".srt")
+        words = text.split()
+        words_per_sec = 2.8
+        chunk_size = 7
+        srt_lines = []
+        idx = 1
+        for i in range(0, len(words), chunk_size):
+            chunk = words[i:i + chunk_size]
+            t_start = i / words_per_sec
+            t_end = (i + len(chunk)) / words_per_sec
+            srt_lines.append(
+                f"{idx}\n{_format_srt_time(t_start)} --> {_format_srt_time(t_end)}\n{' '.join(chunk)}\n"
+            )
+            idx += 1
+        with open(srt_path, "w", encoding="utf-8") as f:
+            f.write("\n".join(srt_lines))
+        print(f"[OK] Subtitulos generados: {srt_path}")
+        return True
+
+    except Exception as e:
+        print(f"[ERROR] Error al generar voz: {e}")
+        return False
+
+
+def generate_speech_with_edge_tts(text: str, output_path: str):
+    """
+    Genera voz usando Edge TTS — fallback para entorno local
+    Intenta primero gTTS (funciona en CI), luego Edge TTS
+    """
+    # En CI/cloud usar gTTS directamente
+    if os.getenv("GITHUB_ACTIONS") or os.getenv("CI"):
+        return generate_speech_with_gtts(text, output_path)
+
+    print("[*] Generando voz en off con Edge TTS...")
+    try:
+        import edge_tts
         import asyncio
 
         srt_path = output_path.replace(".mp3", ".srt")
@@ -229,8 +272,8 @@ def generate_speech_with_edge_tts(text: str, output_path: str):
         print(f"[OK] Subtitulos generados: {srt_path}")
         return True
     except Exception as e:
-        print(f"[ERROR] Error al generar voz: {e}")
-        return False
+        print(f"[WARN] Edge TTS fallo ({e}), usando gTTS...")
+        return generate_speech_with_gtts(text, output_path)
 
 
 def download_images_from_pexels(topic: str, count: int = 3):

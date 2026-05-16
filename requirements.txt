@@ -2,6 +2,8 @@ google-genai
 requests
 python-dotenv
 edge-tts
+gtts
+httpx
 pillow
 google-auth-oauthlib
 google-auth-httplib2
