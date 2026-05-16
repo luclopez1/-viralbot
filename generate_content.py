@@ -189,7 +189,7 @@ def generate_script_with_claude(topic: str):
             try:
                 groq_client = _get_groq_client()
                 response = groq_client.chat.completions.create(
-                    model="mixtral-8x7b-32768",
+                    model="llama-3.1-8b-instant",
                     messages=[{"role": "user", "content": prompt}],
                     temperature=0.7,
                     max_tokens=1024
