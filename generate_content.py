@@ -461,22 +461,36 @@ def upload_to_youtube(video_path: str, title: str, description: str, tags: str):
         token_json_str = os.getenv("YOUTUBE_TOKEN")
         if token_json_str:
             try:
+                print(f"[DEBUG] Token desde env var, longitud: {len(token_json_str)}")
                 token_json_str = token_json_str.strip().strip("'\"")
+                print(f"[DEBUG] Después de strip, longitud: {len(token_json_str)}")
+                print(f"[DEBUG] Primeros 100 chars: {token_json_str[:100]}")
                 creds = Credentials.from_authorized_user_info(json.loads(token_json_str), SCOPES)
             except Exception as e:
                 print(f"[WARN] Env token inválido: {e}, intentando archivo...")
                 if not os.path.exists(TOKEN_FILE):
                     print("[ERROR] No hay token de YouTube en env ni archivo")
                     return False
-                with open(TOKEN_FILE, 'r') as f:
-                    raw = f.read().strip().strip("'\"")
+                with open(TOKEN_FILE, 'r', encoding='utf-8') as f:
+                    raw = f.read()
+                print(f"[DEBUG] Token desde archivo, longitud: {len(raw)}")
+                print(f"[DEBUG] Primeros 100 chars (raw): {repr(raw[:100])}")
+                raw = raw.strip().strip("'\"")
+                print(f"[DEBUG] Después de strip, longitud: {len(raw)}")
+                print(f"[DEBUG] Primeros 100 chars (stripped): {repr(raw[:100])}")
                 creds = Credentials.from_authorized_user_info(json.loads(raw), SCOPES)
         else:
+            print("[DEBUG] YOUTUBE_TOKEN no está en env, leyendo desde archivo...")
             if not os.path.exists(TOKEN_FILE):
                 print("[ERROR] No hay token de YouTube. Ejecuta primero: python setup_youtube_auth.py")
                 return False
-            with open(TOKEN_FILE, 'r') as f:
-                raw = f.read().strip().strip("'\"")
+            with open(TOKEN_FILE, 'r', encoding='utf-8') as f:
+                raw = f.read()
+            print(f"[DEBUG] Token desde archivo, longitud: {len(raw)}")
+            print(f"[DEBUG] Primeros 100 chars (raw): {repr(raw[:100])}")
+            raw = raw.strip().strip("'\"")
+            print(f"[DEBUG] Después de strip, longitud: {len(raw)}")
+            print(f"[DEBUG] Primeros 100 chars (stripped): {repr(raw[:100])}")
             creds = Credentials.from_authorized_user_info(json.loads(raw), SCOPES)
 
         # Renovar token si ha expirado
