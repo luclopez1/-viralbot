@@ -1,5 +1,5 @@
 name: ViralBot - Generar y Subir Short
-
+ 
 on:
   schedule:
     - cron: '0 7 * * *'   # 08:00 hora España (UTC+1)
