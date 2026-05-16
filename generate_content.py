@@ -443,7 +443,7 @@ def create_video_with_ffmpeg(images: list, audio_path: str, output_path: str, sr
 
 def upload_to_youtube(video_path: str, title: str, description: str, tags: str):
     """
-    Sube el video a YouTube usando el token OAuth guardado
+    Sube el video a YouTube usando el token OAuth (desde archivo o env var)
     """
     print(f"[*] Subiendo a YouTube...")
     print(f"   Titulo: {title}")
@@ -457,24 +457,48 @@ def upload_to_youtube(video_path: str, title: str, description: str, tags: str):
         SCOPES = ['https://www.googleapis.com/auth/youtube.upload']
         TOKEN_FILE = 'youtube_token.json'
 
-        if not os.path.exists(TOKEN_FILE):
-            print("[ERROR] No hay token de YouTube. Ejecuta primero: python setup_youtube_auth.py")
-            return False
-
-        with open(TOKEN_FILE, 'r') as f:
-            raw = f.read().strip()
-            # Limpiar posibles comillas envolventes del secret de CI
-            if raw.startswith(("'", '"')) and raw.endswith(("'", '"')):
-                raw = raw[1:-1]
-        creds = Credentials.from_authorized_user_info(json.loads(raw), SCOPES)
+        # Intentar cargar desde env var primero (CI), luego desde archivo (local)
+        token_json_str = os.getenv("YOUTUBE_TOKEN")
+        if token_json_str:
+            try:
+                token_json_str = token_json_str.strip().strip("'\"")
+                creds = Credentials.from_authorized_user_info(json.loads(token_json_str), SCOPES)
+            except Exception as e:
+                print(f"[WARN] Env token inválido: {e}, intentando archivo...")
+                if not os.path.exists(TOKEN_FILE):
+                    print("[ERROR] No hay token de YouTube en env ni archivo")
+                    return False
+                with open(TOKEN_FILE, 'r') as f:
+                    raw = f.read().strip().strip("'\"")
+                creds = Credentials.from_authorized_user_info(json.loads(raw), SCOPES)
+        else:
+            if not os.path.exists(TOKEN_FILE):
+                print("[ERROR] No hay token de YouTube. Ejecuta primero: python setup_youtube_auth.py")
+                return False
+            with open(TOKEN_FILE, 'r') as f:
+                raw = f.read().strip().strip("'\"")
+            creds = Credentials.from_authorized_user_info(json.loads(raw), SCOPES)
 
         # Renovar token si ha expirado
-        if creds.expired and creds.refresh_token:
-            refresh_session = requests.Session()
-            refresh_session.verify = False
-            creds.refresh(Request(session=refresh_session))
-            with open(TOKEN_FILE, 'w') as f:
-                f.write(creds.to_json())
+        if creds.expired:
+            print(f"[*] Token expirado, renovando...")
+            if not creds.refresh_token:
+                print("[ERROR] No hay refresh_token disponible")
+                return False
+            try:
+                refresh_session = requests.Session()
+                refresh_session.verify = False
+                creds.refresh(Request(session=refresh_session))
+                print(f"[OK] Token renovado exitosamente")
+                # Guardar token renovado en archivo
+                with open(TOKEN_FILE, 'w') as f:
+                    f.write(creds.to_json())
+                print(f"[OK] Token guardado en {TOKEN_FILE}")
+            except Exception as refresh_error:
+                print(f"[ERROR] Fallo al renovar token: {refresh_error}")
+                print(f"[WARN] Continuando con token expirado (puede fallar la subida)...")
+        else:
+            print(f"[OK] Token válido")
 
         youtube = build('youtube', 'v3', credentials=creds)
 
