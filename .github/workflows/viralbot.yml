@@ -2,12 +2,12 @@ name: ViralBot - Generar y Subir Short
 
 on:
   schedule:
-    - cron: '0 7 * * *'   # 08:00 hora España (UTC+1)
-    - cron: '0 11 * * *'  # 12:00
-    - cron: '0 15 * * *'  # 16:00
-    - cron: '0 18 * * *'  # 19:00
-    - cron: '0 21 * * *'  # 22:00
-  workflow_dispatch:       # Permite ejecutarlo manualmente también
+    - cron: '0 7 * * *'
+    - cron: '0 11 * * *'
+    - cron: '0 15 * * *'
+    - cron: '0 18 * * *'
+    - cron: '0 21 * * *'
+  workflow_dispatch:
 
 env:
   GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
@@ -38,31 +38,10 @@ jobs:
         env:
           YOUTUBE_TOKEN: ${{ secrets.YOUTUBE_TOKEN }}
           YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
-        run: |
-          python3 << 'EOF'
-import os, json
-def clean_and_write(env_var, path):
-    raw = os.environ[env_var].strip().strip("'\"")
-    print(f"[DEBUG] Raw length for {env_var}: {len(raw)} chars")
-    print(f"[DEBUG] First 50 chars: {raw[:50]}")
-    # Validar que es JSON valido
-    parsed = json.loads(raw)
-    with open(path, 'w') as f:
-        f.write(raw)
-    print(f"[OK] {path} creado exitosamente")
-
-clean_and_write('YOUTUBE_TOKEN', 'youtube_token.json')
-clean_and_write('YOUTUBE_CREDENTIALS', 'youtube_credentials.json')
-print('[OK] Credenciales escritas correctamente')
-EOF
-          mkdir -p temp videos_output logs
+        run: python3 create_creds.py && mkdir -p temp videos_output logs
 
       - name: Verificar archivos de credenciales
-        run: |
-          echo "[DEBUG] Contenido de youtube_token.json:"
-          python3 -c "import json; data=json.load(open('youtube_token.json')); print(f'  Token valido: {\"token\" in data}')"
-          echo "[DEBUG] Contenido de youtube_credentials.json:"
-          python3 -c "import json; data=json.load(open('youtube_credentials.json')); print(f'  Credentials valido: {\"installed\" in data}')"
+        run: python3 -c "import json; json.load(open('youtube_token.json')); json.load(open('youtube_credentials.json')); print('[OK] Credenciales v�lidas')"
 
       - name: Crear .env
         run: |
@@ -73,12 +52,6 @@ EOF
           echo "TEMP_DIR=./temp" >> .env
           echo "VIDEO_DURATION_SECONDS=58" >> .env
           echo "VIDEO_RESOLUTION=1080x1920" >> .env
-
-      - name: Verificar env
-        run: |
-          echo "GEMINI key set: $([ -n "$GEMINI_API_KEY" ] && echo YES || echo NO)"
-          echo "YOUTUBE key set: $([ -n "$YOUTUBE_API_KEY" ] && echo YES || echo NO)"
-          cat .env | sed 's/=.*/=***/'
 
       - name: Generar y subir video
         run: python generate_content.py
