@@ -39,7 +39,7 @@ jobs:
           YOUTUBE_TOKEN: ${{ secrets.YOUTUBE_TOKEN }}
           YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
         run: |
-          python3 << 'EOF'
+          python3 <<- 'EOF'
 import os, json
 def clean_and_write(env_var, path):
     raw = os.environ[env_var].strip().strip("'\"")
