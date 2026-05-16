@@ -39,19 +39,30 @@ jobs:
           YOUTUBE_TOKEN: ${{ secrets.YOUTUBE_TOKEN }}
           YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
         run: |
-          python3 -c "
+          python3 << 'EOF'
 import os, json
 def clean_and_write(env_var, path):
-    raw = os.environ[env_var].strip().strip(\"'\\\"\")
+    raw = os.environ[env_var].strip().strip("'\"")
+    print(f"[DEBUG] Raw length for {env_var}: {len(raw)} chars")
+    print(f"[DEBUG] First 50 chars: {raw[:50]}")
     # Validar que es JSON valido
-    json.loads(raw)
+    parsed = json.loads(raw)
     with open(path, 'w') as f:
         f.write(raw)
+    print(f"[OK] {path} creado exitosamente")
+
 clean_and_write('YOUTUBE_TOKEN', 'youtube_token.json')
 clean_and_write('YOUTUBE_CREDENTIALS', 'youtube_credentials.json')
-print('Credenciales escritas correctamente')
-"
+print('[OK] Credenciales escritas correctamente')
+EOF
           mkdir -p temp videos_output logs
+
+      - name: Verificar archivos de credenciales
+        run: |
+          echo "[DEBUG] Contenido de youtube_token.json:"
+          python3 -c "import json; data=json.load(open('youtube_token.json')); print(f'  Token valido: {\"token\" in data}')"
+          echo "[DEBUG] Contenido de youtube_credentials.json:"
+          python3 -c "import json; data=json.load(open('youtube_credentials.json')); print(f'  Credentials valido: {\"installed\" in data}')"
 
       - name: Crear .env
         run: |
