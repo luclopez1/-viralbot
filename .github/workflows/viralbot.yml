@@ -55,7 +55,7 @@ clean_and_write('YOUTUBE_TOKEN', 'youtube_token.json')
 clean_and_write('YOUTUBE_CREDENTIALS', 'youtube_credentials.json')
 print('[OK] Credenciales escritas correctamente')
 EOF
-          mkdir -p temp videos_output logs
+  mkdir -p temp videos_output logs
 
       - name: Verificar archivos de credenciales
         run: |
