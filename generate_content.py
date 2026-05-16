@@ -34,6 +34,7 @@ except ImportError:
 
 from google import genai
 from google.genai import types as genai_types
+from groq import Groq
 
 # Cargar variables de entorno
 load_dotenv()
@@ -41,6 +42,7 @@ load_dotenv()
 # Configuración
 YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 PEXELS_API_KEY = os.getenv("PEXELS_API_KEY")
 OUTPUT_DIR = Path(os.getenv("OUTPUT_DIR", "./videos_output"))
 TEMP_DIR = Path(os.getenv("TEMP_DIR", "./temp"))
@@ -58,6 +60,11 @@ def _get_gemini_client():
         return genai.Client(api_key=key, http_options={"httpxClient": _httpx_client})
     except Exception:
         return genai.Client(api_key=key)
+
+
+def _get_groq_client():
+    """Obtiene cliente de Groq como fallback"""
+    return Groq(api_key=GROQ_API_KEY)
 
 
 NICHES = [
@@ -136,7 +143,7 @@ def get_trending_topics_from_youtube():
 
 def generate_script_with_claude(topic: str):
     """
-    Genera un guión de 30-60 segundos usando Gemini (gratis)
+    Genera un guión usando Gemini (primero) o Groq (fallback si Gemini sin cuota)
     """
     print(f"Generando guion para: {topic}")
 
@@ -163,12 +170,38 @@ def generate_script_with_claude(topic: str):
     }}
     """
 
-    gemini_client = _get_gemini_client()
-    response = gemini_client.models.generate_content(
-        model="gemini-2.0-flash",
-        contents=prompt
-    )
-    response_text = response.text
+    response_text = None
+
+    # Intentar primero con Gemini
+    try:
+        print("[*] Intentando con Gemini...")
+        gemini_client = _get_gemini_client()
+        response = gemini_client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=prompt
+        )
+        response_text = response.text
+        print("[OK] Guion generado con Gemini")
+    except Exception as e:
+        error_msg = str(e)
+        if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg or "quota" in error_msg.lower():
+            print(f"[WARN] Gemini sin cuota, usando Groq como fallback...")
+            try:
+                groq_client = _get_groq_client()
+                response = groq_client.chat.completions.create(
+                    model="mixtral-8x7b-32768",
+                    messages=[{"role": "user", "content": prompt}],
+                    temperature=0.7,
+                    max_tokens=1024
+                )
+                response_text = response.choices[0].message.content
+                print("[OK] Guion generado con Groq")
+            except Exception as groq_error:
+                print(f"[ERROR] Groq tambien fallo: {groq_error}")
+                raise
+        else:
+            print(f"[ERROR] Error en Gemini: {e}")
+            raise
 
     # Parsear JSON
     try:
