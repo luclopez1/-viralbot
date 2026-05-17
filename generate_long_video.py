@@ -158,15 +158,49 @@ def generate_long_script(topic: str, content_type: str):
 
     {type_prompts[content_type]}
 
+    ESTRUCTURA OBLIGATORIA (formato capitulos profesionales):
+    El video DEBE tener 5 SECCIONES/CAPITULOS claramente definidos.
+    Cada seccion debe tener:
+    - Titulo descriptivo y atractivo
+    - 3 puntos clave que se desarrollan en el guion
+    - Transicion narrativa hacia la siguiente seccion (conecta ideas)
+
+    Ejemplo de estructura:
+    SECCION 1: "El Problema Que Nadie Te Dice" (1.5 min)
+      - Punto 1: Estado actual del mercado/situacion
+      - Punto 2: Por que es un problema
+      - Punto 3: Transicion: "Pero hay una solucion..."
+
+    SECCION 2: "La Primera Herramienta/Concepto Clave" (1.5 min)
+      - Punto 1: Introducir el primer elemento
+      - Punto 2: Como funciona / ejemplo real
+      - Punto 3: Transicion al siguiente
+
+    SECCION 3: "El Truco/Estrategia Avanzada" (1.5 min)
+      - Punto 1: Profundizar con dato/estrategia avanzada
+      - Punto 2: Caso practico o ejemplo
+      - Punto 3: Conectar con la accion practica
+
+    SECCION 4: "Como Aplicarlo HOY Mismo" (2 min)
+      - Punto 1: Pasos concretos accionables
+      - Punto 2: Errores comunes a evitar
+      - Punto 3: Resultados esperados
+
+    SECCION 5: "El Proximo Paso (Conclusion)" (1.5 min)
+      - Punto 1: Recap de los puntos clave
+      - Punto 2: Vision a futuro / urgencia
+      - Punto 3: CTA fuerte de suscripcion
+
     REGLAS CRITICAS:
     1. DURACION: El guion debe ser de 1200-1500 palabras (8-10 minutos hablados)
-    2. GANCHO INICIAL (primeros 15 segundos): pregunta impactante o dato shock
-    3. NO PERDER RETENCION: cada 60 segundos un "pattern interrupt" (cambio de ritmo)
+    2. GANCHO INICIAL (primeros 15 segundos antes de Seccion 1): pregunta impactante o dato shock
+    3. NO PERDER RETENCION: cada seccion termina anticipando la siguiente
     4. PROMESA al principio: "Al final de este video vas a saber..."
     5. CTA cada 2-3 minutos: "Sigueme para mas videos asi"
     6. Tono: directo, autoridad, energetico
     7. Sin emojis en el texto
     8. Frases claras y bien estructuradas (no como Shorts)
+    9. INCLUIR EN LA DESCRIPCION los timestamps de cada seccion (0:00 Intro, 0:30 Seccion 1, etc.)
 
     CTA FINAL OBLIGATORIO (ULTIMA PARTE DEL GUION - critico para suscriptores):
     El guion DEBE TERMINAR SIEMPRE con un CTA FUERTE de suscripcion de 2-3 frases.
@@ -181,16 +215,67 @@ def generate_long_script(topic: str, content_type: str):
        que te ha parecido y compartelo con quien lo necesite. Nos vemos pronto."
     IMPORTANTE: El video DEBE cerrar SIEMPRE con esta llamada a la accion clara.
 
-    TITULO VIRAL (max 70 caracteres):
-    - Usa numeros, "secreto", "verdad oculta", preguntas
-    - Ejemplos: "Las 7 IAs que te haran rico en 2026", "La verdad oculta sobre Bitcoin"
+    TITULO VIRAL (max 70 caracteres) - USA FORMULAS PROBADAS CON MILLONES DE VISTAS:
+
+    FORMULA 1 - Storytelling personal (1M+ vistas):
+      "ChatGPT me hizo rico: Mi historia REAL con IA"
+      "Como gane mi primer millon con IA en 2026"
+
+    FORMULA 2 - Negacion + Alternativa (600K+ vistas):
+      "NO inviertas en Bitcoin en 2026 (HAZ ESTO)"
+      "NO empieces dropshipping (mira esto en su lugar)"
+
+    FORMULA 3 - Estadistica shock + pregunta (3M+ vistas):
+      "Por que el 95% pierde dinero con IA"
+      "Por que el 99% nunca consigue ser rico"
+
+    FORMULA 4 - GRATIS/FREE (1.8M+ vistas):
+      "Top 10 herramientas IA GRATIS para 2026"
+      "Los mejores cursos de IA totalmente GRATIS"
+
+    FORMULA 5 - Autoridad + Drama (550K+ vistas):
+      "Google acaba de DESTRUIR este negocio con IA"
+      "OpenAI acaba de matar 5 industrias"
+
+    FORMULA 6 - Warning + Lista (alta retencion):
+      "12 SCAMS de IA que debes evitar en 2026"
+      "Cuidado con estas 5 estafas crypto"
+
+    Palabras gancho probadas: KILLED, DESTROYED, NUNCA, SIEMPRE, GRATIS, SECRETO, NADIE, REAL, ESTAFA, CUIDADO, 99%, 95%
 
     Responde SOLO en JSON sin texto extra:
     {{
         "titulo": "Titulo viral largo (max 70 caracteres)",
-        "guion": "Guion completo de 1200-1500 palabras",
+        "esquema": [
+            {{
+                "seccion": 1,
+                "titulo": "Titulo de la primera seccion",
+                "puntos": ["punto 1", "punto 2", "punto 3"]
+            }},
+            {{
+                "seccion": 2,
+                "titulo": "Titulo de la segunda seccion",
+                "puntos": ["punto 1", "punto 2", "punto 3"]
+            }},
+            {{
+                "seccion": 3,
+                "titulo": "Titulo de la tercera seccion",
+                "puntos": ["punto 1", "punto 2", "punto 3"]
+            }},
+            {{
+                "seccion": 4,
+                "titulo": "Titulo de la cuarta seccion",
+                "puntos": ["punto 1", "punto 2", "punto 3"]
+            }},
+            {{
+                "seccion": 5,
+                "titulo": "Titulo de la quinta seccion (conclusion + CTA)",
+                "puntos": ["punto 1", "punto 2", "CTA fuerte"]
+            }}
+        ],
+        "guion": "Guion completo de 1200-1500 palabras siguiendo la estructura de las 5 secciones del esquema",
         "hashtags": "#dinero #ia #finanzas #emprendimiento #educacion #youtube #2026",
-        "descripcion": "Descripcion atractiva 3-5 lineas con palabras clave y timestamps si aplica. Incluye CTA para suscribirse."
+        "descripcion": "Descripcion atractiva con CTA + TIMESTAMPS de cada seccion (formato: 0:00 Intro, 0:30 Seccion 1: titulo, 2:00 Seccion 2: titulo, etc.) + palabras clave."
     }}
     """
 
@@ -436,6 +521,16 @@ def main():
     content = generate_long_script(topic, content_type)
     word_count = len(content['guion'].split())
     print(f"\n[*] Guion generado: {word_count} palabras (~{word_count // 150} min)")
+
+    # Mostrar esquema si existe
+    if "esquema" in content and content["esquema"]:
+        print("\n[*] ESQUEMA DEL VIDEO:")
+        print("="*60)
+        for seccion in content["esquema"]:
+            print(f"\n  SECCION {seccion.get('seccion', '?')}: {seccion.get('titulo', 'Sin titulo')}")
+            for punto in seccion.get('puntos', []):
+                print(f"    - {punto}")
+        print("="*60 + "\n")
 
     # 4. Generar voz
     audio_path = TEMP_DIR / "voice_long.mp3"

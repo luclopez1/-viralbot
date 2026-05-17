@@ -178,13 +178,33 @@ def generate_script_with_claude(topic: str):
 
     TITULO (lo mas importante - decide si hacen click):
     - Maximo 60 caracteres
-    - USA UNA de estas formulas probadas:
-      * Numeros + beneficio: "Esta IA me hizo 1000€ en 24 horas"
-      * Secreto/Exclusivo: "El secreto que los ricos no te dicen"
-      * Negativo + curiosidad: "El 99% no sabe esto sobre Bitcoin"
-      * Pregunta directa: "Como hacer 500€ al dia con IA?"
-      * Shock: "Esto te va a hacer rico (literalmente)"
-    - USA palabras gancho: SECRETO, NADIE, ERROR, TRUCO, NUNCA, SIEMPRE, RAPIDO
+    - USA UNA de estas FORMULAS VIRALES PROBADAS (con millones de vistas):
+
+      FORMULA 1 - Storytelling personal (1M+ vistas):
+        * "ChatGPT me hizo rico: Mi historia con IA"
+        * "Como gane 5000€ con esta IA en 30 dias"
+
+      FORMULA 2 - Negacion + Alternativa (600K+ vistas):
+        * "NO inviertas en Bitcoin en 2026 (HAZ ESTO)"
+        * "NO uses esta IA (usa esta otra)"
+
+      FORMULA 3 - Estadistica shock + pregunta (3M+ vistas):
+        * "Por que el 95% pierde dinero con IA"
+        * "Por que el 99% no consigue ser rico"
+
+      FORMULA 4 - GRATIS/FREE (1.8M+ vistas):
+        * "5 herramientas IA gratis que cambian todo"
+        * "Como ganar dinero GRATIS con IA"
+
+      FORMULA 5 - Autoridad + Drama (550K+ vistas):
+        * "YouTube acaba de DESTRUIR a los canales IA"
+        * "Google acaba de cambiar TODO con esta IA"
+
+      FORMULA 6 - Warning/Peligro (alta retencion):
+        * "Cuidado con este SCAM de IA"
+        * "NO compres esta cripto: es estafa"
+
+    - USA palabras gancho: SECRETO, NADIE, ERROR, TRUCO, NUNCA, SIEMPRE, RAPIDO, GRATIS, ESTAFA, CUIDADO, MUERE, DESTRUYE, KILLED
 
     GANCHO (primeros 2 segundos - aqui se pierde la gente):
     - "PARA todo y mira esto..."
