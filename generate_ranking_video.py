@@ -176,27 +176,48 @@ def create_ranking_frames(content: dict, vertical: bool = True):
     SILVER = "#c0c0c0"
     BRONZE = "#cd7f32"
 
-    # Fuentes - usar Pillow por defecto si no encuentra
-    try:
-        if vertical:
-            font_title = ImageFont.truetype("arial.ttf", 80)
-            font_position = ImageFont.truetype("arial.ttf", 120)
-            font_name = ImageFont.truetype("arial.ttf", 70)
-            font_value = ImageFont.truetype("arial.ttf", 100)
-            font_desc = ImageFont.truetype("arial.ttf", 45)
-        else:
-            font_title = ImageFont.truetype("arial.ttf", 90)
-            font_position = ImageFont.truetype("arial.ttf", 140)
-            font_name = ImageFont.truetype("arial.ttf", 80)
-            font_value = ImageFont.truetype("arial.ttf", 120)
-            font_desc = ImageFont.truetype("arial.ttf", 50)
-    except:
-        # Fallback a fuente default
-        font_title = ImageFont.load_default()
-        font_position = ImageFont.load_default()
-        font_name = ImageFont.load_default()
-        font_value = ImageFont.load_default()
-        font_desc = ImageFont.load_default()
+    # Buscar fuente disponible (Ubuntu, Windows, Mac)
+    FONT_CANDIDATES = [
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+        "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+        "C:\\Windows\\Fonts\\arialbd.ttf",
+        "C:\\Windows\\Fonts\\arial.ttf",
+        "/System/Library/Fonts/Helvetica.ttc",
+        "arial.ttf",
+    ]
+    font_path = None
+    for fp in FONT_CANDIDATES:
+        if os.path.exists(fp):
+            font_path = fp
+            break
+
+    def _load_font(size):
+        if font_path:
+            try:
+                return ImageFont.truetype(font_path, size)
+            except Exception:
+                pass
+        try:
+            return ImageFont.truetype("DejaVuSans-Bold.ttf", size)
+        except Exception:
+            return ImageFont.load_default()
+
+    if vertical:
+        font_title = _load_font(80)
+        font_position = _load_font(180)
+        font_name = _load_font(75)
+        font_value = _load_font(95)
+        font_desc = _load_font(45)
+    else:
+        font_title = _load_font(90)
+        font_position = _load_font(200)
+        font_name = _load_font(85)
+        font_value = _load_font(115)
+        font_desc = _load_font(50)
+
+    print(f"[*] Usando fuente: {font_path or 'default'}")
 
     frames_dir = TEMP_DIR / "ranking_frames"
     frames_dir.mkdir(exist_ok=True)
@@ -211,8 +232,22 @@ def create_ranking_frames(content: dict, vertical: bool = True):
 
     frames = []
 
+    def _draw_gradient_bg(image):
+        """Fondo con gradiente vertical para más vida"""
+        draw = ImageDraw.Draw(image)
+        top = (10, 10, 30)
+        bottom = (30, 10, 60)
+        for y in range(H):
+            t = y / H
+            r = int(top[0] * (1 - t) + bottom[0] * t)
+            g = int(top[1] * (1 - t) + bottom[1] * t)
+            b = int(top[2] * (1 - t) + bottom[2] * t)
+            draw.line([(0, y), (W, y)], fill=(r, g, b))
+        return image
+
     # FRAME 1: Intro (titulo)
     img = Image.new('RGB', (W, H), BG)
+    _draw_gradient_bg(img)
     d = ImageDraw.Draw(img)
     # Titulo central
     bbox = d.textbbox((0, 0), titulo, font=font_title)
@@ -264,6 +299,7 @@ def create_ranking_frames(content: dict, vertical: bool = True):
             color = ACCENT
 
         img = Image.new('RGB', (W, H), BG)
+        _draw_gradient_bg(img)
         d = ImageDraw.Draw(img)
 
         if vertical:
