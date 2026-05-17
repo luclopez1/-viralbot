@@ -1,8 +1,7 @@
 name: ViralBot Long - Generar Video Largo Diario
 
 on:
-  schedule:
-    - cron: '0 17 * * *'  # 18:00 España - prime time para videos largos
+  # Schedule desactivado - solo manual
   workflow_dispatch:
 
 env:

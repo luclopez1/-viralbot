@@ -2,9 +2,7 @@ name: ViralBot - Generar y Subir Short
  
 on:
   schedule:
-    - cron: '0 12 * * *'   # 13:00 España - almuerzo (pico)
-    - cron: '0 19 * * *'   # 20:00 España - prime time (pico)
-    - cron: '0 21 * * *'   # 22:00 España - antes de dormir (pico)
+    - cron: '0 19 * * *'   # 20:00 España - prime time (mejor pico)
   workflow_dispatch:
 
 env:
