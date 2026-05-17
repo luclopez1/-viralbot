@@ -243,9 +243,25 @@ def generate_long_script(topic: str, content_type: str):
 
     Palabras gancho probadas: KILLED, DESTROYED, NUNCA, SIEMPRE, GRATIS, SECRETO, NADIE, REAL, ESTAFA, CUIDADO, 99%, 95%
 
+    SEO YOUTUBE (CRITICO para aparecer en busquedas):
+
+    TAGS SEO (15-20 tags - palabras clave para busquedas):
+    Mezcla broad, especificos y long-tail:
+    - 5 tags principales con keyword: "ganar dinero ia", "como hacer dinero ia 2026"
+    - 5 tags secundarios: "ia gratis", "herramientas ia"
+    - 5 tags long-tail: "como ganar 1000 euros con ia rapido"
+    - 5 tags broad: "youtube", "tutorial", "espanol", "2026"
+
+    DESCRIPCION SEO con TIMESTAMPS:
+    - Primera linea: titulo + keyword principal (lo que mas indexa YouTube)
+    - Resumen de 2-3 lineas con keywords naturales
+    - TIMESTAMPS (capitulos): "0:00 Intro / 0:30 Seccion 1 / 2:00 Seccion 2..."
+    - CTA suscripcion
+    - Hashtags al final
+
     Responde SOLO en JSON sin texto extra:
     {{
-        "titulo": "Titulo viral largo (max 70 caracteres)",
+        "titulo": "Titulo viral largo (max 70 caracteres con keyword)",
         "esquema": [
             {{
                 "seccion": 1,
@@ -275,7 +291,8 @@ def generate_long_script(topic: str, content_type: str):
         ],
         "guion": "Guion completo de 1200-1500 palabras siguiendo la estructura de las 5 secciones del esquema",
         "hashtags": "#dinero #ia #finanzas #emprendimiento #educacion #youtube #2026",
-        "descripcion": "Descripcion atractiva con CTA + TIMESTAMPS de cada seccion (formato: 0:00 Intro, 0:30 Seccion 1: titulo, 2:00 Seccion 2: titulo, etc.) + palabras clave."
+        "tags_seo": "tag1, tag2, tag3, tag4, tag5, tag6, tag7, tag8, tag9, tag10, tag11, tag12, tag13, tag14, tag15",
+        "descripcion": "Linea 1 con titulo+keyword. Resumen 2-3 lineas. TIMESTAMPS de cada seccion. CTA suscripcion. Hashtags al final."
     }}
     """
 
@@ -424,9 +441,10 @@ def create_long_video_with_ffmpeg(images: list, audio_path: str, output_path: st
         return False
 
 
-def upload_long_video_to_youtube(video_path: str, title: str, description: str, tags: str):
+def upload_long_video_to_youtube(video_path: str, title: str, description: str, tags: str, seo_tags: str = ""):
     """
     Sube un video LARGO (no Short) a YouTube
+    seo_tags: tags adicionales para mejorar el SEO
     """
     from google.oauth2.credentials import Credentials
     from google.auth.transport.requests import Request
@@ -468,7 +486,14 @@ def upload_long_video_to_youtube(video_path: str, title: str, description: str, 
         # NO añadir #Shorts (es video largo)
         long_title = title[:100]
         long_description = description[:4900] + '\n\n' + tags
+
+        # Combinar hashtags + tags SEO
         tag_list = [t.lstrip('#') for t in tags.split()]
+        if seo_tags:
+            seo_tag_list = [t.strip() for t in seo_tags.split(",") if t.strip()]
+            tag_list.extend(seo_tag_list)
+        tag_list = list(dict.fromkeys(tag_list))[:30]
+        print(f"[DEBUG] Tags SEO: {len(tag_list)} tags")
 
         body = {
             'snippet': {
@@ -552,12 +577,13 @@ def main():
         print("[ERROR] Error al crear el video")
         return False
 
-    # 7. Subir como video normal (no Short)
+    # 7. Subir como video normal (no Short) con tags SEO
     upload_long_video_to_youtube(
         str(video_path),
         content['titulo'],
         content['descripcion'],
-        content['hashtags']
+        content['hashtags'],
+        content.get('tags_seo', '')
     )
 
     print("\n" + "="*60)

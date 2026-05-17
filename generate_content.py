@@ -236,12 +236,43 @@ def generate_script_with_claude(topic: str):
     - SIEMPRE incluir: #shorts
     - Mezcla generales (#dinero #ia) + nicho especifico
 
+    SEO YOUTUBE (CRITICO para aparecer en busquedas):
+
+    HASHTAGS (5-7 maximo en el video):
+    - SIEMPRE incluir: #shorts
+    - 2-3 hashtags BROAD (alto volumen): #dinero #ia #finanzas
+    - 2-3 hashtags ESPECIFICOS (low competition): #bitcoin2026 #ganarconai #emprendimiento
+
+    TAGS YOUTUBE (15-20 tags para SEO - NO confundir con hashtags):
+    Son palabras clave que ayudan a YouTube a entender de que va el video.
+    Mezcla:
+    - 5 tags de keyword principal (variaciones): "ganar dinero con ia", "ia para ganar dinero", "como ganar dinero con ai", "ia inteligencia artificial dinero"
+    - 5 tags de keyword secundaria: "ia 2026", "herramientas ia", "ia gratis", "ai tools"
+    - 5 tags long-tail: "como ganar 1000 euros con ia", "mejor ia para hacer dinero 2026"
+    - 5 tags broad: "shorts", "youtube shorts", "viral", "tutorial", "espanol"
+
+    DESCRIPCION SEO (CRITICO):
+    - Primera linea: TITULO + keyword principal (lo que YouTube indexa mas)
+    - 2-3 lineas: Resumen con keywords naturales
+    - Linea 4: CTA para suscribirse
+    - Linea 5: Hashtags al final
+
+    Ejemplo descripcion SEO:
+    "Aprende a ganar dinero con IA en 2026 con estas herramientas gratis.
+    En este video te muestro las mejores IAs para hacer dinero online,
+    perfectas para emprendedores y principiantes que quieren empezar hoy.
+
+    Suscribete para mas trucos como este!
+
+    #shorts #dinero #ia #ganardinero #emprendimiento"
+
     Responde SOLO en JSON sin texto extra:
     {{
-        "titulo": "Titulo VIRAL con gancho probado (max 60 caracteres)",
+        "titulo": "Titulo VIRAL con gancho probado (max 60 caracteres con KEYWORD principal)",
         "guion": "GANCHO IMPACTANTE de 2 segundos. Desarrollo con tension. CTA final fuerte.",
         "hashtags": "#shorts #hashtag2 #hashtag3 #hashtag4 #hashtag5 #hashtag6",
-        "descripcion": "Descripcion atractiva con palabras clave. Incluye CTA para suscribirse."
+        "tags_seo": "tag1, tag2, tag3, tag4, tag5, tag6, tag7, tag8, tag9, tag10, tag11, tag12, tag13, tag14, tag15",
+        "descripcion": "Linea 1 con keyword principal. Linea 2-3 resumen con keywords naturales. CTA suscripcion. Hashtags al final."
     }}
     """
 
@@ -545,9 +576,10 @@ def create_video_with_ffmpeg(images: list, audio_path: str, output_path: str, sr
         return False
 
 
-def upload_to_youtube(video_path: str, title: str, description: str, tags: str):
+def upload_to_youtube(video_path: str, title: str, description: str, tags: str, seo_tags: str = ""):
     """
     Sube el video a YouTube usando el token OAuth (desde archivo o env var)
+    seo_tags: lista de tags SEO separados por coma para mejorar busqueda
     """
     print(f"[*] Subiendo a YouTube...")
     print(f"   Titulo: {title}")
@@ -623,7 +655,16 @@ def upload_to_youtube(video_path: str, title: str, description: str, tags: str):
         # Añadir #Shorts para que YouTube lo clasifique como Short/Reel
         shorts_title = (title + ' #Shorts')[:100]
         shorts_description = description[:4900] + '\n\n' + tags + ' #Shorts'
+
+        # Combinar hashtags + tags SEO para maximo alcance en busquedas
         tag_list = [t.lstrip('#') for t in tags.split()] + ['Shorts']
+        if seo_tags:
+            # Agregar tags SEO (separados por coma)
+            seo_tag_list = [t.strip() for t in seo_tags.split(",") if t.strip()]
+            tag_list.extend(seo_tag_list)
+        # YouTube permite max 500 caracteres total en tags, deduplicar
+        tag_list = list(dict.fromkeys(tag_list))[:30]
+        print(f"[DEBUG] Tags SEO aplicados: {len(tag_list)} tags")
 
         body = {
             'snippet': {
@@ -695,12 +736,13 @@ def main():
         print("[ERROR] Error al crear el video")
         return False
 
-    # 6. Subir a YouTube
+    # 6. Subir a YouTube (con tags SEO)
     upload_to_youtube(
         str(video_path),
         content['titulo'],
         content['descripcion'],
-        content['hashtags']
+        content['hashtags'],
+        content.get('tags_seo', '')
     )
 
     print("\n" + "="*60)
