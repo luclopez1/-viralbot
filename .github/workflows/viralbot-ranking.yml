@@ -1,0 +1,53 @@
+name: ViralBot Ranking - Top 5 Short Diario
+
+on:
+  schedule:
+    - cron: '0 15 * * *'  # 16:00 España - hora media tarde
+  workflow_dispatch:
+
+env:
+  GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+  YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+  PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+  GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+
+jobs:
+  generate-ranking-short:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Instalar FFmpeg y fuentes
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg ttf-mscorefonts-installer fonts-liberation
+          sudo fc-cache -fv
+
+      - name: Instalar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalar paquetes
+        run: pip install -r requirements.txt
+
+      - name: Crear archivos de credenciales
+        env:
+          YOUTUBE_TOKEN: ${{ secrets.YOUTUBE_TOKEN }}
+          YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
+        run: python3 create_creds.py && mkdir -p temp videos_output logs
+
+      - name: Crear .env
+        run: |
+          echo "GEMINI_API_KEY=${GEMINI_API_KEY}" > .env
+          echo "YOUTUBE_API_KEY=${YOUTUBE_API_KEY}" >> .env
+          echo "PEXELS_API_KEY=${PEXELS_API_KEY}" >> .env
+          echo "GROQ_API_KEY=${GROQ_API_KEY}" >> .env
+          echo "OUTPUT_DIR=videos_output" >> .env
+          echo "TEMP_DIR=temp" >> .env
+
+      - name: Generar ranking Short Top 5
+        run: python generate_ranking_video.py
