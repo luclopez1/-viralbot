@@ -200,10 +200,17 @@ def generate_script_with_claude(topic: str):
     - Construye TENSION: problema → solucion
     - Sin emojis en el texto
 
-    CTA FINAL (para conseguir suscriptores):
-    - "Sigueme para mas trucos como este"
-    - "Si quieres ser rico, dale like y sigueme"
-    - "Comenta SI para mas videos asi"
+    CTA FINAL OBLIGATORIO (ULTIMA FRASE DEL GUION - para conseguir suscriptores):
+    El guion DEBE TERMINAR SIEMPRE con una llamada a la accion para suscribirse.
+    Usa UNA de estas variaciones (rota entre ellas):
+    - "Suscribete para saber mas sobre este tema"
+    - "Sigueme para mas trucos como este, no te lo pierdas"
+    - "Si quieres mas informacion, suscribete al canal"
+    - "Dale like y suscribete para mas videos asi"
+    - "Suscribete y activa la campana para no perderte nada"
+    - "Sigueme para descubrir mas secretos como este"
+    - "Suscribete si quieres aprender mas sobre [tema]"
+    IMPORTANTE: Esta debe ser SIEMPRE la ultima frase del guion, sin excepcion.
 
     HASHTAGS (5-7 estrategicos para alcance):
     - SIEMPRE incluir: #shorts
