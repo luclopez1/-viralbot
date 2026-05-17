@@ -274,14 +274,10 @@ def generate_speech_with_gtts(text: str, output_path: str):
 
 def generate_speech_with_edge_tts(text: str, output_path: str):
     """
-    Genera voz usando Edge TTS — fallback para entorno local
-    Intenta primero gTTS (funciona en CI), luego Edge TTS
+    Genera voz usando Edge TTS — voz natural de Microsoft (gratis)
+    Funciona tanto en local como en GitHub Actions
     """
-    # En CI/cloud usar gTTS directamente
-    if os.getenv("GITHUB_ACTIONS") or os.getenv("CI"):
-        return generate_speech_with_gtts(text, output_path)
-
-    print("[*] Generando voz en off con Edge TTS...")
+    print("[*] Generando voz en off con Edge TTS (voz natural)...")
     try:
         import edge_tts
         import asyncio
