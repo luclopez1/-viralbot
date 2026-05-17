@@ -1,0 +1,64 @@
+name: ViralBot Ranking EN - Top 5 Short Daily
+
+on:
+  schedule:
+    - cron: '30 15 * * *'  # 16:30 Spain - US morning peak
+  workflow_dispatch:
+
+env:
+  GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+  YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+  PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+  GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+
+jobs:
+  generate-ranking-en-short:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install FFmpeg and fonts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg ttf-mscorefonts-installer fonts-liberation
+          sudo fc-cache -fv
+
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install packages
+        run: pip install -r requirements.txt
+
+      - name: Create EN credentials files
+        env:
+          YOUTUBE_TOKEN_EN: ${{ secrets.YOUTUBE_TOKEN_EN }}
+          YOUTUBE_CREDENTIALS_EN: ${{ secrets.YOUTUBE_CREDENTIALS_EN }}
+        run: |
+          python3 -c "
+          import os, json
+          raw = os.environ['YOUTUBE_TOKEN_EN'].strip().strip(\"'\\\"\")
+          json.loads(raw)
+          open('youtube_token_en.json', 'w').write(raw)
+          raw2 = os.environ['YOUTUBE_CREDENTIALS_EN'].strip().strip(\"'\\\"\")
+          json.loads(raw2)
+          open('youtube_credentials_en.json', 'w').write(raw2)
+          print('[OK] EN credentials created')
+          "
+          mkdir -p temp videos_output logs
+
+      - name: Create .env
+        run: |
+          echo "GEMINI_API_KEY=${GEMINI_API_KEY}" > .env
+          echo "YOUTUBE_API_KEY=${YOUTUBE_API_KEY}" >> .env
+          echo "PEXELS_API_KEY=${PEXELS_API_KEY}" >> .env
+          echo "GROQ_API_KEY=${GROQ_API_KEY}" >> .env
+          echo "OUTPUT_DIR=videos_output" >> .env
+          echo "TEMP_DIR=temp" >> .env
+
+      - name: Generate EN ranking Short Top 5
+        run: python generate_ranking_video_en.py
