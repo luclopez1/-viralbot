@@ -2,9 +2,7 @@ name: ViralBot EN - Generate Shorts in English
 
 on:
   schedule:
-    - cron: '30 8 * * *'    # 09:30 Spain - peak US morning
     - cron: '30 13 * * *'   # 14:30 Spain - peak US lunch
-    - cron: '30 17 * * *'   # 18:30 Spain - peak US afternoon
     - cron: '30 20 * * *'   # 21:30 Spain - peak US prime time
     - cron: '30 22 * * *'   # 23:30 Spain - peak US evening
   workflow_dispatch:
