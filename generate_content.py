@@ -71,18 +71,39 @@ NICHES = [
     "ganar dinero con inteligencia artificial 2026",
     "crypto bitcoin ethereum 2026",
     "finanzas personales inversion 2026",
+    "habitos millonarios mindset exito 2026",
+    "psicologia manipulacion lenguaje corporal",
+    "productividad trabajo remoto side hustle 2026",
 ]
 
 FALLBACK_TOPICS = [
+    # IA
     {"title": "Como ganar dinero con IA en 2026", "niche": "IA"},
-    {"title": "Bitcoin va a subir o bajar en 2026", "niche": "Crypto"},
-    {"title": "3 inversiones que te haran rico en 2026", "niche": "Finanzas"},
     {"title": "La IA que genera dinero mientras duermes", "niche": "IA"},
-    {"title": "Ethereum superara a Bitcoin este ano", "niche": "Crypto"},
-    {"title": "Como invertir 100 euros y multiplicarlos", "niche": "Finanzas"},
     {"title": "Herramientas de IA para ganar dinero online", "niche": "IA"},
+    # Crypto
+    {"title": "Bitcoin va a subir o bajar en 2026", "niche": "Crypto"},
+    {"title": "Ethereum superara a Bitcoin este ano", "niche": "Crypto"},
     {"title": "Altcoins que van a explotar en 2026", "niche": "Crypto"},
+    # Finanzas
+    {"title": "3 inversiones que te haran rico en 2026", "niche": "Finanzas"},
+    {"title": "Como invertir 100 euros y multiplicarlos", "niche": "Finanzas"},
     {"title": "Error financiero que comete el 90% de la gente", "niche": "Finanzas"},
+    # Mindset millonario
+    {"title": "5 habitos que tienen todos los millonarios", "niche": "Mindset"},
+    {"title": "Como piensan los ricos vs los pobres", "niche": "Mindset"},
+    {"title": "La mentalidad que te hara rico en 2026", "niche": "Mindset"},
+    {"title": "Por que el 99% nunca sera rico", "niche": "Mindset"},
+    # Psicologia
+    {"title": "3 senales de que alguien te esta mintiendo", "niche": "Psicologia"},
+    {"title": "Como detectar manipuladores en 30 segundos", "niche": "Psicologia"},
+    {"title": "Trucos psicologicos para caerle bien a todos", "niche": "Psicologia"},
+    {"title": "Lenguaje corporal que revela atraccion", "niche": "Psicologia"},
+    # Productividad
+    {"title": "La rutina mañanera de los CEOs millonarios", "niche": "Productividad"},
+    {"title": "3 side hustles que pagan mas que tu trabajo", "niche": "Productividad"},
+    {"title": "Trabajos remotos que pagan 5000 euros al mes", "niche": "Productividad"},
+    {"title": "Como ser productivo trabajando solo 4 horas", "niche": "Productividad"},
 ]
 
 
