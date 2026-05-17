@@ -169,25 +169,52 @@ def generate_script_with_claude(topic: str):
     print(f"Generando guion para: {topic}")
 
     prompt = f"""
-    Eres un experto creador de contenido viral para YouTube Shorts.
-    Genera un guion CORTO y VIRAL para un YouTube Short de 60 segundos.
+    Eres el mejor creador de YouTube Shorts virales del mundo. Has creado videos con +10M de vistas.
+    Tu objetivo: que este Short consiga MAXIMA retencion y suscriptores.
 
     Tema: {topic}
 
-    REGLAS CRITICAS:
-    1. GANCHO en los primeros 3 segundos: pregunta impactante, dato sorprendente o afirmacion provocadora que haga IMPOSIBLE saltar el video. Ejemplos de ganchos: "El 99% de la gente no sabe esto...", "Esto va a cambiar tu vida en 60 segundos", "Lo que nadie te cuenta sobre..."
-    2. Maximo 90 palabras en total
-    3. Tono: urgente, energetico, directo
-    4. CTA claro al final (suscribete, comenta, dale like)
-    5. Sin emojis en el texto
-    6. Cada frase corta y con impacto
+    REGLAS CRITICAS PARA VIRALIZAR:
+
+    TITULO (lo mas importante - decide si hacen click):
+    - Maximo 60 caracteres
+    - USA UNA de estas formulas probadas:
+      * Numeros + beneficio: "Esta IA me hizo 1000€ en 24 horas"
+      * Secreto/Exclusivo: "El secreto que los ricos no te dicen"
+      * Negativo + curiosidad: "El 99% no sabe esto sobre Bitcoin"
+      * Pregunta directa: "Como hacer 500€ al dia con IA?"
+      * Shock: "Esto te va a hacer rico (literalmente)"
+    - USA palabras gancho: SECRETO, NADIE, ERROR, TRUCO, NUNCA, SIEMPRE, RAPIDO
+
+    GANCHO (primeros 2 segundos - aqui se pierde la gente):
+    - "PARA todo y mira esto..."
+    - "Si no haces esto vas a perder dinero..."
+    - "Esto va a cambiar tu vida en 60 segundos"
+    - "El 99% de la gente no sabe esto..."
+    - "Lo que nadie te cuenta sobre [tema]..."
+
+    GUION:
+    - Maximo 100 palabras en total
+    - Frases CORTAS y con IMPACTO (3-7 palabras por frase)
+    - Tono: urgente, energetico, directo, autoridad
+    - Construye TENSION: problema → solucion
+    - Sin emojis en el texto
+
+    CTA FINAL (para conseguir suscriptores):
+    - "Sigueme para mas trucos como este"
+    - "Si quieres ser rico, dale like y sigueme"
+    - "Comenta SI para mas videos asi"
+
+    HASHTAGS (5-7 estrategicos para alcance):
+    - SIEMPRE incluir: #shorts
+    - Mezcla generales (#dinero #ia) + nicho especifico
 
     Responde SOLO en JSON sin texto extra:
     {{
-        "titulo": "Titulo con gancho (max 60 caracteres, usa numeros o preguntas)",
-        "guion": "GANCHO IMPACTANTE aqui. Resto del guion...",
-        "hashtags": "#hashtag1 #hashtag2 #hashtag3 #hashtag4 #hashtag5",
-        "descripcion": "Descripcion de 2-3 lineas para YouTube con palabras clave"
+        "titulo": "Titulo VIRAL con gancho probado (max 60 caracteres)",
+        "guion": "GANCHO IMPACTANTE de 2 segundos. Desarrollo con tension. CTA final fuerte.",
+        "hashtags": "#shorts #hashtag2 #hashtag3 #hashtag4 #hashtag5 #hashtag6",
+        "descripcion": "Descripcion atractiva con palabras clave. Incluye CTA para suscribirse."
     }}
     """
 
