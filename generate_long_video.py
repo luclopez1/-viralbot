@@ -373,14 +373,16 @@ def create_long_video_with_ffmpeg(images: list, audio_path: str, output_path: st
 
         duration_per_image = audio_duration / len(images)
 
-        # Filtro FFmpeg horizontal 1920x1080
+        # Filtro FFmpeg horizontal 1920x1080 (LLENA TODA LA PANTALLA con crop)
         filter_parts = []
         concat_parts = []
 
         for i, img in enumerate(images):
+            # scale=increase + crop: llena toda la pantalla recortando si es necesario
+            # Sin bandas negras - imagen completa
             filter_parts.append(
-                f"[{i}:v]scale=1920:1080:force_original_aspect_ratio=decrease,"
-                f"pad=1920:1080:(ow-iw)/2:(oh-ih)/2[img{i}]"
+                f"[{i}:v]scale=1920:1080:force_original_aspect_ratio=increase,"
+                f"crop=1920:1080,setsar=1[img{i}]"
             )
             concat_parts.append(f"[img{i}]")
 

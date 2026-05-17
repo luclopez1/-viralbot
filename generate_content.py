@@ -445,8 +445,8 @@ def create_video_with_ffmpeg(images: list, audio_path: str, output_path: str, sr
         concat_parts = []
 
         for i, img in enumerate(images):
-            # Escalar a 1080x1920 con padding
-            filter_parts.append(f"[{i}:v]scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2[img{i}]")
+            # Escalar a 1080x1920 LLENANDO toda la pantalla (crop en vez de pad)
+            filter_parts.append(f"[{i}:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,setsar=1[img{i}]")
             concat_parts.append(f"[img{i}]")
 
         concat_filter = "".join(concat_parts) + f"concat=n={len(images)}:v=1:a=0[v]"
