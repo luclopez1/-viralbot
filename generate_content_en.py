@@ -134,14 +134,51 @@ def get_trending_topics_en():
 
 
 def generate_script_en(topic: str):
-    """Generate viral English script using Gemini (fallback Groq)"""
+    """Generate viral English script using Gemini (fallback Groq)
+    Alternates between Type A (pure virality) and Type B (conversion with strategic CTA)
+    """
+    import random
     print(f"[*] Generating English script for: {topic}")
+
+    # 50% pure virality, 50% conversion with strategic CTA
+    video_type = random.choice(["VIRALITY", "CONVERSION"])
+    print(f"[*] Video type: {video_type}")
+
+    if video_type == "VIRALITY":
+        cta_instructions = """
+    VIDEO TYPE: PURE VIRALITY (no subscribe CTA)
+    - GOAL: maximum retention + low swipe rate
+    - DO NOT include subscribe CTA
+    - Maybe soft like/comment CTA at end if it fits
+    - All energy into making the video impactful
+    - Viewer should stay till end due to curiosity
+    """
+    else:
+        cta_instructions = """
+    VIDEO TYPE: CONVERSION (strategic CTA BEFORE the climax)
+    - GOAL: get subscribers with well-placed CTA
+    - CRITICAL RULE: CTA does NOT go at the end, it goes IN THE MIDDLE before revealing key info
+    - Mandatory structure:
+      1. HOOK (2 seconds)
+      2. Generate curiosity / problem
+      3. CTA IN MIDDLE: "Subscribe if you want to know [what's coming next]"
+      4. Reveal info (climax)
+      5. End
+    - Strategic CTA examples:
+      * "Subscribe to find out the answer..." (before giving answer)
+      * "Follow me if you think this will make you rich..." (before key advice)
+      * "Subscribe so you don't miss the trick coming up..." (before the trick)
+    - CTA must feel natural, connected to what's coming
+    - DO NOT repeat CTA at the end, only once in the middle
+    """
 
     prompt = f"""
     You are the best viral YouTube Shorts creator in the world. Your videos have +10M views.
     Your goal: maximum retention and subscribers.
 
     Topic: {topic}
+
+    {cta_instructions}
 
     CRITICAL VIRAL RULES:
 
@@ -188,14 +225,12 @@ def generate_script_en(topic: str):
     - Build TENSION: problem → solution
     - No emojis
 
-    MANDATORY CTA AT END (last sentence - critical for subscribers):
-    The script MUST ALWAYS end with a clear subscribe CTA.
-    Rotate between:
-    - "Subscribe for more tips like this"
-    - "Follow me for more secrets"
-    - "Hit subscribe and turn on notifications"
-    - "Like and subscribe for more content like this"
-    - "Subscribe to learn more about [topic]"
+    RETENTION (most important in a Short):
+    - Viewer must stay till the end (don't scroll)
+    - Each sentence creates curiosity for the next
+    - Short punchy sentences (3-7 words)
+    - If VIRALITY type: no subscribe CTA
+    - If CONVERSION type: SINGLE CTA in the middle (before climax)
 
     YOUTUBE SEO:
 

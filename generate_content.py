@@ -165,14 +165,50 @@ def get_trending_topics_from_youtube():
 def generate_script_with_claude(topic: str):
     """
     Genera un guión usando Gemini (primero) o Groq (fallback si Gemini sin cuota)
+    Alterna entre Tipo A (viralidad pura) y Tipo B (conversion con CTA inteligente)
     """
+    import random
     print(f"Generando guion para: {topic}")
+
+    # 50% viralidad pura, 50% conversion con CTA estrategica
+    video_type = random.choice(["VIRALIDAD", "CONVERSION"])
+    print(f"[*] Tipo de video: {video_type}")
+
+    if video_type == "VIRALIDAD":
+        cta_instructions = """
+    TIPO DE VIDEO: VIRALIDAD PURA (sin CTA de suscripcion)
+    - OBJETIVO: maxima retencion + bajo swipe rate
+    - NO incluir CTA de "suscribete"
+    - Solo incluir CTA suave de like/comentario al final si encaja
+    - Toda la energia en hacer el video impactante y completo
+    - El espectador debe quedarse hasta el final por la curiosidad
+    """
+    else:
+        cta_instructions = """
+    TIPO DE VIDEO: CONVERSION (CTA estrategica ANTES del climax)
+    - OBJETIVO: conseguir suscriptores con CTA bien colocada
+    - REGLA CRITICA: la CTA NO va al final, va EN MEDIO antes de revelar la informacion clave
+    - Estructura obligatoria:
+      1. HOOK (2 segundos)
+      2. Generar curiosidad / problema
+      3. CTA EN MEDIO: "Suscribete si quieres saber [lo que viene a continuacion]"
+      4. Revelar la informacion (climax)
+      5. Final
+    - Ejemplos de CTA estrategica:
+      * "Suscribete si quieres saber la respuesta..." (antes de dar la respuesta)
+      * "Sigueme si crees que esto te hara rico..." (antes del consejo clave)
+      * "Suscribete para no perderte el truco que viene..." (antes del truco)
+    - La CTA debe sentirse natural, conectada con lo que va a venir
+    - NO repetir CTA al final, solo una vez en el medio
+    """
 
     prompt = f"""
     Eres el mejor creador de YouTube Shorts virales del mundo. Has creado videos con +10M de vistas.
     Tu objetivo: que este Short consiga MAXIMA retencion y suscriptores.
 
     Tema: {topic}
+
+    {cta_instructions}
 
     REGLAS CRITICAS PARA VIRALIZAR:
 
@@ -220,17 +256,12 @@ def generate_script_with_claude(topic: str):
     - Construye TENSION: problema → solucion
     - Sin emojis en el texto
 
-    CTA FINAL OBLIGATORIO (ULTIMA FRASE DEL GUION - para conseguir suscriptores):
-    El guion DEBE TERMINAR SIEMPRE con una llamada a la accion para suscribirse.
-    Usa UNA de estas variaciones (rota entre ellas):
-    - "Suscribete para saber mas sobre este tema"
-    - "Sigueme para mas trucos como este, no te lo pierdas"
-    - "Si quieres mas informacion, suscribete al canal"
-    - "Dale like y suscribete para mas videos asi"
-    - "Suscribete y activa la campana para no perderte nada"
-    - "Sigueme para descubrir mas secretos como este"
-    - "Suscribete si quieres aprender mas sobre [tema]"
-    IMPORTANTE: Esta debe ser SIEMPRE la ultima frase del guion, sin excepcion.
+    RETENCION (lo mas importante de un Short):
+    - El espectador debe quedarse hasta el final (no deslizar)
+    - Cada frase genera curiosidad para la siguiente
+    - Frases cortas y con impacto (3-7 palabras)
+    - Si es tipo VIRALIDAD: sin CTA de suscripcion
+    - Si es tipo CONVERSION: CTA UNICA en medio (antes del climax)
 
     HASHTAGS (5-7 estrategicos para alcance):
     - SIEMPRE incluir: #shorts
