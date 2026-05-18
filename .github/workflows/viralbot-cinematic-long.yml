@@ -1,0 +1,62 @@
+name: ViralBot Cinematic Long EN - AI Cinematic Documentary Daily
+
+on:
+  schedule:
+    - cron: '0 19 * * *'   # 20:00 Spain - US prime time
+  workflow_dispatch:
+
+env:
+  GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+  YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+  GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+
+jobs:
+  generate-cinematic-long:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install FFmpeg and fonts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg ttf-mscorefonts-installer fonts-liberation
+          sudo fc-cache -fv
+
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install packages
+        run: pip install -r requirements.txt
+
+      - name: Create CINEMATIC credentials files
+        env:
+          YOUTUBE_TOKEN_CINEMATIC: ${{ secrets.YOUTUBE_TOKEN_CINEMATIC }}
+          YOUTUBE_CREDENTIALS_CINEMATIC: ${{ secrets.YOUTUBE_CREDENTIALS_CINEMATIC }}
+        run: |
+          python3 -c "
+          import os, json
+          raw = os.environ['YOUTUBE_TOKEN_CINEMATIC'].strip().strip(\"'\\\"\")
+          json.loads(raw)
+          open('youtube_token_cinematic.json', 'w').write(raw)
+          raw2 = os.environ['YOUTUBE_CREDENTIALS_CINEMATIC'].strip().strip(\"'\\\"\")
+          json.loads(raw2)
+          open('youtube_credentials_cinematic.json', 'w').write(raw2)
+          print('[OK] CINEMATIC credentials created')
+          "
+          mkdir -p temp videos_output logs
+
+      - name: Create .env
+        run: |
+          echo "GEMINI_API_KEY=${GEMINI_API_KEY}" > .env
+          echo "YOUTUBE_API_KEY=${YOUTUBE_API_KEY}" >> .env
+          echo "GROQ_API_KEY=${GROQ_API_KEY}" >> .env
+          echo "OUTPUT_DIR=videos_output" >> .env
+          echo "TEMP_DIR=temp" >> .env
+
+      - name: Generate Cinematic Long Video
+        run: python generate_cinematic_long.py
