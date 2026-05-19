@@ -1,13 +1,12 @@
-name: ViralBot Cinematic Short EN - AI Cinematic Short Daily
+name: ViralBot Cinematic Short EN - Unveiled Channel
 
 on:
   schedule:
-    - cron: '0 18 * * *'   # 19:00 Spain - US lunch peak
+    - cron: '0 18 * * *'  # 19:00 Spain - US afternoon peak
   workflow_dispatch:
 
 env:
   GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-  YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
   GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
 
 jobs:
@@ -22,7 +21,7 @@ jobs:
       - name: Install FFmpeg and fonts
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg ttf-mscorefonts-installer fonts-liberation
+          sudo apt-get install -y ffmpeg libass-dev fonts-liberation ttf-mscorefonts-installer
           sudo fc-cache -fv
 
       - name: Install Python
@@ -33,7 +32,7 @@ jobs:
       - name: Install packages
         run: pip install -r requirements.txt
 
-      - name: Create CINEMATIC credentials files
+      - name: Create CINEMATIC channel credentials
         env:
           YOUTUBE_TOKEN_CINEMATIC: ${{ secrets.YOUTUBE_TOKEN_CINEMATIC }}
           YOUTUBE_CREDENTIALS_CINEMATIC: ${{ secrets.YOUTUBE_CREDENTIALS_CINEMATIC }}
@@ -46,17 +45,16 @@ jobs:
           raw2 = os.environ['YOUTUBE_CREDENTIALS_CINEMATIC'].strip().strip(\"'\\\"\")
           json.loads(raw2)
           open('youtube_credentials_cinematic.json', 'w').write(raw2)
-          print('[OK] CINEMATIC credentials created')
+          print('[OK] Cinematic credentials created')
           "
           mkdir -p temp videos_output logs
 
       - name: Create .env
         run: |
           echo "GEMINI_API_KEY=${GEMINI_API_KEY}" > .env
-          echo "YOUTUBE_API_KEY=${YOUTUBE_API_KEY}" >> .env
           echo "GROQ_API_KEY=${GROQ_API_KEY}" >> .env
           echo "OUTPUT_DIR=videos_output" >> .env
           echo "TEMP_DIR=temp" >> .env
 
-      - name: Generate Cinematic Short
+      - name: Generate Cinematic Short for Unveiled
         run: python generate_cinematic_short.py

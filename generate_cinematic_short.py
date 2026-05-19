@@ -110,11 +110,12 @@ def generate_cinematic_story(num_scenes: int = 8):
 
     RULES:
     1. Each scene must have a DRAMATIC, cinematic image prompt (in English, very detailed)
-    2. Each scene must have a SHORT narration line (max 15 words)
-    3. The narration must build TENSION and CURIOSITY
-    4. Image prompts must be HYPERREALISTIC, CINEMATIC, dramatic lighting
-    5. Use consistent character/setting across scenes
-    6. END with a question or cliffhanger to drive comments
+    2. Each scene must have 2-3 sentences of narration (20-30 words minimum per scene)
+    3. Total narration across ALL scenes must be AT LEAST 150 words (target 60-90 seconds audio)
+    4. The narration must build TENSION and CURIOSITY progressively
+    5. Image prompts must be HYPERREALISTIC, CINEMATIC, dramatic lighting
+    6. Use consistent character/setting across scenes
+    7. END with a question or cliffhanger to drive comments and subscriptions
 
     For image prompts, describe in detail:
     - The scene (location, atmosphere)
