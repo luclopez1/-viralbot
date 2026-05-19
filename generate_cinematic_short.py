@@ -236,8 +236,15 @@ def assemble_cinematic_video(images: list, audio_path: str, output_path: str, ve
     else:
         print("[WARN] No subtitles file found, skipping")
 
-    # Font size based on orientation
-    font_size = 52 if vertical else 42
+    # Font size and margins based on orientation
+    # Vertical (Shorts 1080x1920): menos espacio horizontal → fuente pequeña + márgenes
+    # Horizontal (Long 1920x1080): mucho espacio horizontal → fuente grande sin márgenes
+    if vertical:
+        font_size = 36
+        margin_l, margin_r, margin_v = 60, 60, 100
+    else:
+        font_size = 52
+        margin_l, margin_r, margin_v = 80, 80, 60
 
     # Build FFmpeg command with Ken Burns zoompan
     cmd = [ffmpeg, "-y"]
@@ -288,7 +295,10 @@ def assemble_cinematic_video(images: list, audio_path: str, output_path: str, ve
             f"Outline=3,"
             f"Shadow=2,"
             f"Alignment=2,"
-            f"MarginV=80"
+            f"MarginL={margin_l},"
+            f"MarginR={margin_r},"
+            f"MarginV={margin_v},"
+            f"WrapStyle=0"
         )
         filter_complex += f";[vraw]subtitles='{srt_escaped}':force_style='{subtitle_style}'[v]"
     else:
