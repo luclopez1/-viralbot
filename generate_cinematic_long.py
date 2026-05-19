@@ -171,15 +171,33 @@ def generate_long_cinematic_story(num_scenes: int = 25):
         response_text = response.text
     except Exception as e:
         if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e) or "quota" in str(e).lower():
-            print("[WARN] Gemini quota exceeded, using Groq...")
-            groq_client = _get_groq_client()
-            response = groq_client.chat.completions.create(
-                model="llama-3.1-8b-instant",
-                messages=[{"role": "user", "content": prompt}],
-                temperature=0.8,
-                max_tokens=8000,
+            print("[WARN] Gemini quota exceeded, using Groq with reduced prompt...")
+            # Groq has token limits - use smaller prompt with fewer scenes
+            groq_scenes = min(num_scenes, 12)
+            prompt_groq = prompt.replace(
+                f"EXACTLY {num_scenes} scenes",
+                f"EXACTLY {groq_scenes} scenes"
+            ).replace(
+                f"... ({num_scenes} scenes total)",
+                f"... ({groq_scenes} scenes total)"
             )
-            response_text = response.choices[0].message.content
+            groq_client = _get_groq_client()
+            # Use llama-3.3-70b-versatile - higher token limits than 8b-instant
+            for groq_model in ["llama-3.3-70b-versatile", "llama-3.1-70b-versatile", "mixtral-8x7b-32768"]:
+                try:
+                    print(f"[*] Trying Groq model: {groq_model}...")
+                    response = groq_client.chat.completions.create(
+                        model=groq_model,
+                        messages=[{"role": "user", "content": prompt_groq}],
+                        temperature=0.8,
+                        max_tokens=6000,
+                    )
+                    response_text = response.choices[0].message.content
+                    print(f"[OK] Groq responded with {groq_model}")
+                    break
+                except Exception as groq_err:
+                    print(f"[WARN] {groq_model} failed: {groq_err}")
+                    continue
         else:
             raise
 
