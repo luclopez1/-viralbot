@@ -36,7 +36,7 @@ from generate_content import _get_gemini_client, _get_groq_client
 from generate_content import generate_speech_with_edge_tts
 from pollinations_helper import generate_image_batch
 from huggingface_video import animate_batch
-from generate_cinematic_short import (
+from video_utils import (
     find_ffmpeg,
     get_audio_duration,
     upload_to_cinematic_channel,
