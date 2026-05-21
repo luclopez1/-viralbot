@@ -167,150 +167,92 @@ def assemble_mythology_video(
     srt_path: str = None,
 ):
     """
-    Ensambla el video final con clips animados (o Ken Burns) + transiciones xfade
-    clips: lista de paths a videos HF (puede haber None si fallo HF → usa Ken Burns)
-    images: lista de paths a imagenes originales (fallback Ken Burns)
+    Ensambla el video en un solo comando FFmpeg con todas las imagenes.
+    Sin clips intermedios, sin xfade — concat directo + audio + subtitulos.
     """
-    print("\n[*] Ensamblando video con transiciones xfade...")
+    print("\n[*] Ensamblando video de mitologia...")
     ffmpeg = find_ffmpeg()
     W, H = 1080, 1920
     fps = 24
-    transition_dur = 0.5  # segundos de transicion entre clips
 
     audio_duration = get_audio_duration(audio_path)
-    num_clips = len(clips)
-    # Duracion por clip incluyendo overlap de transicion
-    clip_duration = (audio_duration + transition_dur * (num_clips - 1)) / num_clips
-    clip_duration = max(clip_duration, 4.0)
+    num_images = len(images)
+    dur = audio_duration / num_images
+    dur = max(dur, 3.0)
 
-    print(f"[*] Audio: {audio_duration:.1f}s | {num_clips} clips x {clip_duration:.1f}s")
+    print(f"[*] Audio: {audio_duration:.1f}s | {num_images} imagenes x {dur:.1f}s")
 
-    # Preparar clips individuales (HF o Ken Burns)
-    temp_clips = []
-    frames_per_clip = int(clip_duration * fps)
-
-    for i, (clip, img) in enumerate(zip(clips, images)):
-        clip_out = TEMP_DIR / f"myth_clip_{i:02d}.mp4"
-
-        # Imagen estatica escalada al tamano correcto (rapido, sin zoompan)
-        cmd = [
-            ffmpeg, "-y",
-            "-loop", "1", "-t", str(clip_duration), "-i", img,
-            "-vf", (
-                f"scale={W}:{H}:force_original_aspect_ratio=increase,"
-                f"crop={W}:{H}:(ow-iw)/2:(oh-ih)/2,setsar=1,fps={fps}"
-            ),
-            "-c:v", "libx264", "-preset", "ultrafast", "-pix_fmt", "yuv420p",
-            str(clip_out)
-        ]
-
-        try:
-            subprocess.run(cmd, capture_output=True, check=True)
-            temp_clips.append(str(clip_out))
-            print(f"  [OK] Clip {i+1}/{num_clips}")
-        except subprocess.CalledProcessError as e:
-            print(f"[WARN] Clip {i} fallo: {e.stderr.decode()[:200]}")
-
-    if not temp_clips:
-        print("[ERROR] No se generaron clips")
-        return False
-
-    # Unir clips con transicion xfade (crossfade)
-    if len(temp_clips) == 1:
-        final_video = temp_clips[0]
-    else:
-        # Construir filtro xfade encadenado
-        xfade_filter = ""
-        prev = "[0:v]"
-        for i in range(1, len(temp_clips)):
-            offset = clip_duration * i - transition_dur * i
-            out_label = f"[xf{i}]"
-            xfade_filter += (
-                f"{prev}[{i}:v]xfade=transition=fade:"
-                f"duration={transition_dur}:offset={offset:.2f}{out_label};"
-            )
-            prev = out_label
-        xfade_filter = xfade_filter.rstrip(";")
-        # Renombrar ultimo output a [vraw]
-        xfade_filter = xfade_filter[:xfade_filter.rfind("]")] + "vraw]"
-
-        joined_path = TEMP_DIR / "myth_joined.mp4"
-        cmd_join = [ffmpeg, "-y"]
-        for tc in temp_clips:
-            cmd_join.extend(["-i", tc])
-        cmd_join.extend([
-            "-filter_complex", xfade_filter,
-            "-map", "[vraw]",
-            "-c:v", "libx264", "-preset", "medium", "-pix_fmt", "yuv420p",
-            str(joined_path)
-        ])
-        try:
-            subprocess.run(cmd_join, capture_output=True, check=True)
-            final_video = str(joined_path)
-        except subprocess.CalledProcessError as e:
-            print(f"[WARN] xfade fallo, concatenando sin transicion: {e.stderr.decode()[:300]}")
-            # Fallback: concat simple
-            list_file = TEMP_DIR / "clips_list.txt"
-            with open(list_file, "w") as f:
-                for tc in temp_clips:
-                    f.write(f"file '{tc}'\n")
-            concat_path = TEMP_DIR / "myth_concat.mp4"
-            subprocess.run([
-                ffmpeg, "-y", "-f", "concat", "-safe", "0",
-                "-i", str(list_file),
-                "-c", "copy", str(concat_path)
-            ], capture_output=True, check=True)
-            final_video = str(concat_path)
-
-    # Anadir audio + subtitulos
+    # Subtitulos
     has_srt = srt_path and Path(srt_path).exists() and Path(srt_path).stat().st_size > 10
-    srt_escaped = srt_path.replace("\\", "/").replace(":", "\\:") if has_srt else None
-
     subtitle_style = (
         "FontName=Liberation Sans,FontSize=18,PrimaryColour=&H00FFFFFF,"
         "Bold=1,OutlineColour=&H00000000,Outline=2,Shadow=1,"
         "Alignment=2,MarginL=80,MarginR=80,MarginV=120,WrapStyle=2"
     )
 
-    if has_srt:
-        vf_filter = f"subtitles='{srt_escaped}':force_style='{subtitle_style}'"
-    else:
-        vf_filter = "copy"
+    # Construir filter_complex: escalar+recortar cada imagen y concatenar
+    filter_parts = []
+    for i in range(num_images):
+        filter_parts.append(
+            f"[{i}:v]scale={W}:{H}:force_original_aspect_ratio=increase,"
+            f"crop={W}:{H}:(ow-iw)/2:(oh-ih)/2,setsar=1,fps={fps}[v{i}]"
+        )
+    concat_inputs = "".join(f"[v{i}]" for i in range(num_images))
+    filter_complex = (
+        ";".join(filter_parts) +
+        f";{concat_inputs}concat=n={num_images}:v=1:a=0[vraw]"
+    )
 
-    cmd_final = [
-        ffmpeg, "-y",
-        "-i", final_video,
-        "-i", audio_path,
-        "-vf", vf_filter,
-        "-map", "0:v",
-        "-map", "1:a",
-        "-c:v", "libx264", "-preset", "medium", "-pix_fmt", "yuv420p",
+    if has_srt:
+        srt_escaped = srt_path.replace("\\", "/").replace(":", "\\:")
+        filter_complex += f";[vraw]subtitles='{srt_escaped}':force_style='{subtitle_style}'[v]"
+    else:
+        filter_complex += ";[vraw]copy[v]"
+
+    cmd = [ffmpeg, "-y"]
+    for img in images:
+        cmd.extend(["-loop", "1", "-t", str(dur), "-i", img])
+    cmd.extend(["-i", audio_path])
+    cmd.extend([
+        "-filter_complex", filter_complex,
+        "-map", "[v]",
+        "-map", f"{num_images}:a",
+        "-c:v", "libx264", "-preset", "fast", "-pix_fmt", "yuv420p",
         "-c:a", "aac", "-b:a", "192k",
         "-shortest",
         output_path
-    ]
+    ])
 
     try:
-        subprocess.run(cmd_final, capture_output=True, check=True)
-        print(f"[OK] Video mitologia creado: {output_path}")
+        subprocess.run(cmd, capture_output=True, check=True)
+        print(f"[OK] Video creado: {output_path}")
         return True
     except subprocess.CalledProcessError as e:
-        print(f"[ERROR] FFmpeg final fallo: {e.stderr.decode()[:500]}")
+        print(f"[WARN] FFmpeg con subtitulos fallo, reintentando sin subtitulos...")
         # Fallback sin subtitulos
-        cmd_nosub = [
-            ffmpeg, "-y",
-            "-i", final_video, "-i", audio_path,
-            "-map", "0:v", "-map", "1:a",
-            "-c:v", "libx264", "-preset", "medium", "-pix_fmt", "yuv420p",
-            "-c:a", "aac", "-b:a", "192k", "-shortest",
+        filter_simple = (
+            ";".join(filter_parts) +
+            f";{concat_inputs}concat=n={num_images}:v=1:a=0[v]"
+        )
+        cmd2 = [ffmpeg, "-y"]
+        for img in images:
+            cmd2.extend(["-loop", "1", "-t", str(dur), "-i", img])
+        cmd2.extend(["-i", audio_path])
+        cmd2.extend([
+            "-filter_complex", filter_simple,
+            "-map", "[v]",
+            "-map", f"{num_images}:a",
+            "-c:v", "libx264", "-preset", "fast", "-pix_fmt", "yuv420p",
+            "-c:a", "aac", "-b:a", "192k",
+            "-shortest",
             output_path
-        ]
+        ])
         try:
-            subprocess.run(cmd_nosub, capture_output=True, check=True)
+            subprocess.run(cmd2, capture_output=True, check=True)
             print(f"[OK] Video creado (sin subtitulos): {output_path}")
             return True
-        except Exception as e2:
-            print(f"[ERROR] {e2}")
+        except subprocess.CalledProcessError as e2:
+            print(f"[ERROR] FFmpeg fallo: {e2.stderr.decode()[:500]}")
             return False
 
 

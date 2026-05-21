@@ -219,149 +219,90 @@ def assemble_mythology_long_video(
     srt_path: str = None,
 ):
     """
-    Ensambla video largo horizontal (1920x1080) con clips animados o Ken Burns
-    + transiciones xfade + audio + subtitulos
+    Ensambla video largo horizontal en un solo comando FFmpeg.
+    Sin clips intermedios — concat directo + audio + subtitulos.
     """
-    print("\n[*] Ensamblando video largo mitologia...")
+    print("\n[*] Ensamblando video largo de mitologia...")
     ffmpeg = find_ffmpeg()
-    W, H = 1920, 1080  # Horizontal para videos largos
+    W, H = 1920, 1080
     fps = 24
-    transition_dur = 0.8  # Transicion mas larga para videos largos
 
     audio_duration = get_audio_duration(audio_path)
-    num_clips = len(clips)
-    clip_duration = (audio_duration + transition_dur * (num_clips - 1)) / num_clips
-    clip_duration = max(clip_duration, 5.0)  # Minimo 5 segundos por escena en largo
+    num_images = len(images)
+    dur = audio_duration / num_images
+    dur = max(dur, 5.0)
 
-    print(f"[*] Audio: {audio_duration:.1f}s | {num_clips} clips x {clip_duration:.1f}s")
+    print(f"[*] Audio: {audio_duration:.1f}s | {num_images} imagenes x {dur:.1f}s")
 
-    # Preparar clips individuales
-    temp_clips = []
-    frames_per_clip = int(clip_duration * fps)
-
-    for i, (clip, img) in enumerate(zip(clips, images)):
-        clip_out = TEMP_DIR / f"myth_long_clip_{i:02d}.mp4"
-
-        # Imagen estatica escalada (rapido, sin zoompan)
-        cmd = [
-            ffmpeg, "-y",
-            "-loop", "1", "-t", str(clip_duration), "-i", img,
-            "-vf", (
-                f"scale={W}:{H}:force_original_aspect_ratio=increase,"
-                f"crop={W}:{H}:(ow-iw)/2:(oh-ih)/2,setsar=1,fps={fps}"
-            ),
-            "-c:v", "libx264", "-preset", "ultrafast", "-pix_fmt", "yuv420p",
-            str(clip_out)
-        ]
-
-        try:
-            subprocess.run(cmd, capture_output=True, check=True)
-            temp_clips.append(str(clip_out))
-            print(f"  [OK] Clip {i+1}/{num_clips}")
-        except subprocess.CalledProcessError as e:
-            print(f"  [WARN] Clip {i+1} fallo: {e.stderr.decode()[:200]}")
-
-    if not temp_clips:
-        print("[ERROR] No se generaron clips")
-        return False
-
-    print(f"\n[*] Uniendo {len(temp_clips)} clips con xfade...")
-
-    # Unir clips con xfade
-    if len(temp_clips) == 1:
-        final_video = temp_clips[0]
-    else:
-        xfade_filter = ""
-        prev = "[0:v]"
-        for i in range(1, len(temp_clips)):
-            offset = clip_duration * i - transition_dur * i
-            out_label = f"[xf{i}]" if i < len(temp_clips) - 1 else "[vraw]"
-            xfade_filter += (
-                f"{prev}[{i}:v]xfade=transition=fade:"
-                f"duration={transition_dur}:offset={offset:.2f}{out_label};"
-            )
-            prev = out_label
-        xfade_filter = xfade_filter.rstrip(";")
-
-        joined_path = TEMP_DIR / "myth_long_joined.mp4"
-        cmd_join = [ffmpeg, "-y"]
-        for tc in temp_clips:
-            cmd_join.extend(["-i", tc])
-        cmd_join.extend([
-            "-filter_complex", xfade_filter,
-            "-map", "[vraw]",
-            "-c:v", "libx264", "-preset", "medium", "-pix_fmt", "yuv420p",
-            str(joined_path)
-        ])
-        try:
-            subprocess.run(cmd_join, capture_output=True, check=True)
-            final_video = str(joined_path)
-            print("[OK] xfade aplicado correctamente")
-        except subprocess.CalledProcessError as e:
-            print(f"[WARN] xfade fallo, usando concat: {e.stderr.decode()[:300]}")
-            # Fallback concat
-            list_file = TEMP_DIR / "myth_long_list.txt"
-            with open(list_file, "w") as f:
-                for tc in temp_clips:
-                    f.write(f"file '{tc}'\n")
-            concat_path = TEMP_DIR / "myth_long_concat.mp4"
-            subprocess.run([
-                ffmpeg, "-y", "-f", "concat", "-safe", "0",
-                "-i", str(list_file), "-c", "copy", str(concat_path)
-            ], capture_output=True, check=True)
-            final_video = str(concat_path)
-
-    # Anadir audio + subtitulos (formato largo: letra mas grande)
     has_srt = srt_path and Path(srt_path).exists() and Path(srt_path).stat().st_size > 10
-
-    # Subtitulos optimizados para video largo horizontal
     subtitle_style = (
         "FontName=Liberation Sans,FontSize=36,PrimaryColour=&H00FFFFFF,"
         "Bold=1,OutlineColour=&H00000000,Outline=2,Shadow=1,"
         "Alignment=2,MarginL=100,MarginR=100,MarginV=60,WrapStyle=2"
     )
 
+    filter_parts = []
+    for i in range(num_images):
+        filter_parts.append(
+            f"[{i}:v]scale={W}:{H}:force_original_aspect_ratio=increase,"
+            f"crop={W}:{H}:(ow-iw)/2:(oh-ih)/2,setsar=1,fps={fps}[v{i}]"
+        )
+    concat_inputs = "".join(f"[v{i}]" for i in range(num_images))
+    filter_complex = (
+        ";".join(filter_parts) +
+        f";{concat_inputs}concat=n={num_images}:v=1:a=0[vraw]"
+    )
+
     if has_srt:
         srt_escaped = srt_path.replace("\\", "/").replace(":", "\\:")
-        vf_filter = f"subtitles='{srt_escaped}':force_style='{subtitle_style}'"
+        filter_complex += f";[vraw]subtitles='{srt_escaped}':force_style='{subtitle_style}'[v]"
     else:
-        vf_filter = "copy"
+        filter_complex += ";[vraw]copy[v]"
 
-    cmd_final = [
-        ffmpeg, "-y",
-        "-i", final_video,
-        "-i", audio_path,
-        "-vf", vf_filter,
-        "-map", "0:v",
-        "-map", "1:a",
-        "-c:v", "libx264", "-preset", "medium", "-pix_fmt", "yuv420p",
+    cmd = [ffmpeg, "-y"]
+    for img in images:
+        cmd.extend(["-loop", "1", "-t", str(dur), "-i", img])
+    cmd.extend(["-i", audio_path])
+    cmd.extend([
+        "-filter_complex", filter_complex,
+        "-map", "[v]",
+        "-map", f"{num_images}:a",
+        "-c:v", "libx264", "-preset", "fast", "-pix_fmt", "yuv420p",
         "-c:a", "aac", "-b:a", "192k",
         "-shortest",
         output_path
-    ]
+    ])
 
     try:
-        subprocess.run(cmd_final, capture_output=True, check=True)
+        subprocess.run(cmd, capture_output=True, check=True)
         size_mb = Path(output_path).stat().st_size / 1024 / 1024
         print(f"[OK] Video largo creado: {output_path} ({size_mb:.1f}MB)")
         return True
     except subprocess.CalledProcessError as e:
-        print(f"[ERROR] FFmpeg final fallo: {e.stderr.decode()[:500]}")
-        # Fallback sin subtitulos
-        cmd_nosub = [
-            ffmpeg, "-y",
-            "-i", final_video, "-i", audio_path,
-            "-map", "0:v", "-map", "1:a",
-            "-c:v", "libx264", "-preset", "medium", "-pix_fmt", "yuv420p",
-            "-c:a", "aac", "-b:a", "192k", "-shortest",
+        print(f"[WARN] FFmpeg con subtitulos fallo, reintentando sin subtitulos...")
+        filter_simple = (
+            ";".join(filter_parts) +
+            f";{concat_inputs}concat=n={num_images}:v=1:a=0[v]"
+        )
+        cmd2 = [ffmpeg, "-y"]
+        for img in images:
+            cmd2.extend(["-loop", "1", "-t", str(dur), "-i", img])
+        cmd2.extend(["-i", audio_path])
+        cmd2.extend([
+            "-filter_complex", filter_simple,
+            "-map", "[v]",
+            "-map", f"{num_images}:a",
+            "-c:v", "libx264", "-preset", "fast", "-pix_fmt", "yuv420p",
+            "-c:a", "aac", "-b:a", "192k",
+            "-shortest",
             output_path
-        ]
+        ])
         try:
-            subprocess.run(cmd_nosub, capture_output=True, check=True)
+            subprocess.run(cmd2, capture_output=True, check=True)
             print(f"[OK] Video creado (sin subtitulos): {output_path}")
             return True
-        except Exception as e2:
-            print(f"[ERROR] Fallo total: {e2}")
+        except subprocess.CalledProcessError as e2:
+            print(f"[ERROR] Fallo total: {e2.stderr.decode()[:500]}")
             return False
 
 
