@@ -192,51 +192,24 @@ def assemble_mythology_video(
     for i, (clip, img) in enumerate(zip(clips, images)):
         clip_out = TEMP_DIR / f"myth_clip_{i:02d}.mp4"
 
-        if clip and Path(clip).exists() and Path(clip).stat().st_size > 10000:
-            # Usar clip animado de HF - escalar y recortar al formato correcto
-            cmd = [
-                ffmpeg, "-y", "-i", clip,
-                "-vf", f"scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},fps={fps},setsar=1",
-                "-t", str(clip_duration),
-                "-c:v", "libx264", "-preset", "fast", "-pix_fmt", "yuv420p",
-                str(clip_out)
-            ]
-        else:
-            # Ken Burns fallback
-            zoom_expr = (
-                f"z='min(zoom+0.0008,1.2)':d={frames_per_clip}:"
-                f"x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'"
-            )
-            cmd = [
-                ffmpeg, "-y",
-                "-loop", "1", "-t", str(clip_duration), "-i", img,
-                "-vf", (
-                    f"scale={W*2}:{H*2}:force_original_aspect_ratio=increase,"
-                    f"crop={W*2}:{H*2}:(ow-iw)/2:(oh-ih)/2,"
-                    f"zoompan={zoom_expr}:s={W}x{H}:fps={fps},setsar=1"
-                ),
-                "-c:v", "libx264", "-preset", "fast", "-pix_fmt", "yuv420p",
-                str(clip_out)
-            ]
+        # Imagen estatica escalada al tamano correcto (rapido, sin zoompan)
+        cmd = [
+            ffmpeg, "-y",
+            "-loop", "1", "-t", str(clip_duration), "-i", img,
+            "-vf", (
+                f"scale={W}:{H}:force_original_aspect_ratio=increase,"
+                f"crop={W}:{H}:(ow-iw)/2:(oh-ih)/2,setsar=1,fps={fps}"
+            ),
+            "-c:v", "libx264", "-preset", "ultrafast", "-pix_fmt", "yuv420p",
+            str(clip_out)
+        ]
 
         try:
             subprocess.run(cmd, capture_output=True, check=True)
             temp_clips.append(str(clip_out))
+            print(f"  [OK] Clip {i+1}/{num_clips}")
         except subprocess.CalledProcessError as e:
             print(f"[WARN] Clip {i} fallo: {e.stderr.decode()[:200]}")
-            # Ultimo fallback: imagen estatica simple
-            cmd_simple = [
-                ffmpeg, "-y",
-                "-loop", "1", "-t", str(clip_duration), "-i", img,
-                "-vf", f"scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},setsar=1",
-                "-c:v", "libx264", "-preset", "fast", "-pix_fmt", "yuv420p",
-                str(clip_out)
-            ]
-            try:
-                subprocess.run(cmd_simple, capture_output=True, check=True)
-                temp_clips.append(str(clip_out))
-            except:
-                pass
 
     if not temp_clips:
         print("[ERROR] No se generaron clips")
