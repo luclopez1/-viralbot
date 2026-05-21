@@ -35,7 +35,6 @@ sys.path.insert(0, str(Path(__file__).parent))
 from generate_content import _get_gemini_client, _get_groq_client
 from generate_content import generate_speech_with_edge_tts
 from pollinations_helper import generate_image_batch
-from huggingface_video import animate_batch
 from video_utils import (
     find_ffmpeg,
     get_audio_duration,
@@ -46,8 +45,6 @@ OUTPUT_DIR = Path(os.getenv("OUTPUT_DIR", "./videos_output"))
 TEMP_DIR = Path(os.getenv("TEMP_DIR", "./temp"))
 OUTPUT_DIR.mkdir(exist_ok=True)
 TEMP_DIR.mkdir(exist_ok=True)
-
-HF_TOKEN = os.getenv("HF_API_TOKEN", "")
 
 # Historias de mitologia griega para Shorts virales
 MYTHOLOGY_SHORTS = [
@@ -370,9 +367,9 @@ def main():
         print("[ERROR] Demasiados fallos de imagen")
         return False
 
-    # 3. Animar imagenes con HF SVD
-    clips_dir = TEMP_DIR / "mythology_clips"
-    clips = animate_batch(images, str(clips_dir), hf_token=HF_TOKEN, prefix="myth_clip")
+    # 3. Usar Ken Burns (HF SVD es demasiado lento para GitHub Actions)
+    clips = [None] * len(images)
+    print(f"[*] Usando Ken Burns para {len(images)} escenas")
 
     # 4. Generar narracion en español
     narracion = ". ".join([s["narracion"] for s in content["escenas"]])
