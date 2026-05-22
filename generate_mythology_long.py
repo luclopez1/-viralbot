@@ -33,7 +33,7 @@ load_dotenv()
 
 sys.path.insert(0, str(Path(__file__).parent))
 from generate_content import _get_gemini_client, _get_groq_client
-from generate_content import generate_speech_with_edge_tts, wrap_srt_lines
+from generate_content import generate_speech_with_edge_tts, wrap_srt_lines, make_ass
 from pollinations_helper import generate_image_batch
 from video_utils import (
     find_ffmpeg,
@@ -234,12 +234,11 @@ def assemble_mythology_long_video(
 
     print(f"[*] Audio: {audio_duration:.1f}s | {num_images} imagenes x {dur:.1f}s")
 
+    # Subtitulos: convertir SRT a ASS con saltos duros \N
     has_srt = srt_path and Path(srt_path).exists() and Path(srt_path).stat().st_size > 10
-    subtitle_style = (
-        "FontName=Liberation Sans,FontSize=32,PrimaryColour=&H00FFFFFF,"
-        "Bold=1,OutlineColour=&H00000000,Outline=2,Shadow=1,"
-        "Alignment=2,MarginL=160,MarginR=160,MarginV=60,WrapStyle=1"
-    )
+    ass_path = None
+    if has_srt:
+        ass_path = make_ass(srt_path, width=W, height=H, fontsize=50, max_chars=50)
 
     filter_parts = []
     for i in range(num_images):
@@ -253,9 +252,9 @@ def assemble_mythology_long_video(
         f";{concat_inputs}concat=n={num_images}:v=1:a=0[vraw]"
     )
 
-    if has_srt:
-        srt_escaped = srt_path.replace("\\", "/").replace(":", "\\:")
-        filter_complex += f";[vraw]subtitles='{srt_escaped}':force_style='{subtitle_style}'[v]"
+    if ass_path:
+        ass_escaped = ass_path.replace("\\", "/").replace(":", "\\:")
+        filter_complex += f";[vraw]ass='{ass_escaped}'[v]"
     else:
         filter_complex += ";[vraw]copy[v]"
 

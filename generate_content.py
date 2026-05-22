@@ -469,6 +469,77 @@ def wrap_srt_lines(srt_path: str, max_chars: int = 28):
         print(f"[WARN] No se pudo reformatear SRT: {e}")
 
 
+def make_ass(srt_path: str, width: int, height: int,
+             fontsize: int = 65, max_chars: int = 20) -> str:
+    """
+    Convierte SRT a ASS con PlayRes = dimensiones reales del video.
+    Usa \\N (salto duro ASS) para garantizar líneas cortas sin overflow.
+    Devuelve la ruta del .ass generado.
+    """
+    import textwrap
+
+    ass_path = srt_path.replace(".srt", ".ass")
+
+    header = (
+        "[Script Info]\n"
+        "ScriptType: v4.00+\n"
+        f"PlayResX: {width}\n"
+        f"PlayResY: {height}\n"
+        "WrapStyle: 0\n"
+        "ScaledBorderAndShadow: yes\n\n"
+        "[V4+ Styles]\n"
+        "Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, "
+        "OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, "
+        "ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, "
+        "Alignment, MarginL, MarginR, MarginV, Encoding\n"
+        f"Style: Default,Liberation Sans,{fontsize},&H00FFFFFF,&H000000FF,"
+        "&H00000000,&H80000000,1,0,0,0,100,100,0,0,1,3,2,2,60,60,150,1\n\n"
+        "[Events]\n"
+        "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n"
+    )
+
+    def srt_to_ass_time(t: str) -> str:
+        """00:00:01,500 -> 0:00:01.50"""
+        t = t.strip().replace(",", ".")
+        h, m, rest = t.split(":")
+        s, ms = rest.split(".")
+        cs = int(ms[:3]) // 10
+        return f"{int(h)}:{m}:{s}.{cs:02d}"
+
+    try:
+        with open(srt_path, "r", encoding="utf-8") as f:
+            raw = f.read()
+        raw = raw.replace("\r\n", "\n").replace("\r", "\n")
+        blocks = raw.strip().split("\n\n")
+        lines_out = [header]
+        for block in blocks:
+            parts = block.strip().split("\n")
+            if len(parts) < 3:
+                continue
+            ts_match = re.match(
+                r"(\d+:\d+:\d+[,\.]\d+)\s*-->\s*(\d+:\d+:\d+[,\.]\d+)",
+                parts[1]
+            )
+            if not ts_match:
+                continue
+            start = srt_to_ass_time(ts_match.group(1))
+            end   = srt_to_ass_time(ts_match.group(2))
+            text  = " ".join(parts[2:])
+            wrapped = textwrap.fill(text, width=max_chars, break_long_words=False)
+            # \N = salto duro en ASS, ignorado por WrapStyle
+            ass_text = wrapped.replace("\n", "\\N")
+            lines_out.append(
+                f"Dialogue: 0,{start},{end},Default,,0,0,0,,{ass_text}"
+            )
+        with open(ass_path, "w", encoding="utf-8") as f:
+            f.write("\n".join(lines_out) + "\n")
+        print(f"[OK] ASS generado: {ass_path} (FontSize={fontsize}, max_chars={max_chars})")
+        return ass_path
+    except Exception as e:
+        print(f"[WARN] make_ass fallo: {e}")
+        return None
+
+
 def download_images_from_pexels(topic: str, count: int = 3):
     """
     Descarga imágenes libres de Pexels relacionadas al tema
