@@ -305,6 +305,19 @@ def generate_script_en(topic: str):
             "descripcion": topic,
         }
 
+    # Normalizar claves: Groq (modelo inglés) puede devolver 'description'
+    # en vez de 'descripcion', 'title' en vez de 'titulo', etc.
+    if "descripcion" not in content:
+        content["descripcion"] = content.get("description", content.get("titulo", topic))
+    if "titulo" not in content:
+        content["titulo"] = content.get("title", topic)
+    if "guion" not in content:
+        content["guion"] = content.get("script", content.get("content", ""))
+    if "hashtags" not in content:
+        content["hashtags"] = content.get("tags", "#shorts #money #ai #youtube")
+    if "tags_seo" not in content:
+        content["tags_seo"] = content.get("seo_tags", "shorts, money, ai, finance, viral")
+
     return content
 
 

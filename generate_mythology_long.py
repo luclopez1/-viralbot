@@ -33,7 +33,7 @@ load_dotenv()
 
 sys.path.insert(0, str(Path(__file__).parent))
 from generate_content import _get_gemini_client, _get_groq_client
-from generate_content import generate_speech_with_edge_tts
+from generate_content import generate_speech_with_edge_tts, wrap_srt_lines
 from pollinations_helper import generate_image_batch
 from video_utils import (
     find_ffmpeg,
@@ -236,9 +236,9 @@ def assemble_mythology_long_video(
 
     has_srt = srt_path and Path(srt_path).exists() and Path(srt_path).stat().st_size > 10
     subtitle_style = (
-        "FontName=Liberation Sans,FontSize=36,PrimaryColour=&H00FFFFFF,"
+        "FontName=Liberation Sans,FontSize=32,PrimaryColour=&H00FFFFFF,"
         "Bold=1,OutlineColour=&H00000000,Outline=2,Shadow=1,"
-        "Alignment=2,MarginL=100,MarginR=100,MarginV=60,WrapStyle=2"
+        "Alignment=2,MarginL=160,MarginR=160,MarginV=60,WrapStyle=1"
     )
 
     filter_parts = []
@@ -347,6 +347,10 @@ def main():
     if not generate_speech_with_edge_tts(narracion, audio_path):
         print("[ERROR] Fallo generacion de voz")
         return False
+
+    # Partir líneas largas del SRT para que no se salgan del frame
+    if Path(srt_path).exists():
+        wrap_srt_lines(srt_path, max_chars=50)
 
     # 6. Ensamblar video horizontal con transiciones
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")

@@ -119,24 +119,58 @@ def generate_ranking_data_en(num_items: int = 5):
             contents=prompt
         )
         response_text = response.text
+        print("[OK] Gemini responded")
     except Exception as e:
         if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e) or "quota" in str(e).lower():
             print(f"[WARN] Gemini quota exceeded, falling back to Groq...")
-            groq_client = _get_groq_client()
-            response = groq_client.chat.completions.create(
-                model="llama-3.1-8b-instant",
-                messages=[{"role": "user", "content": prompt}],
-                temperature=0.7,
-                max_tokens=2000,
-            )
-            response_text = response.choices[0].message.content
+            # Prompt simplificado para Groq (evita truncados con modelos pequeños)
+            prompt_groq = f"""Create a TOP {num_items} ranking about: {topic}
+Unit: {unit}
+
+Respond ONLY in JSON with exactly {num_items} items:
+{{
+    "titulo_viral": "catchy title max 60 chars",
+    "intro": "hook phrase 10-15 words",
+    "items": [
+        {{"posicion": {num_items}, "nombre": "Name", "valor": 100, "descripcion": "short phrase"}},
+        {{"posicion": {num_items-1}, "nombre": "Name", "valor": 200, "descripcion": "short phrase"}},
+        {{"posicion": {num_items-2}, "nombre": "Name", "valor": 500, "descripcion": "short phrase"}},
+        {{"posicion": 2, "nombre": "Name", "valor": 800, "descripcion": "short phrase"}},
+        {{"posicion": 1, "nombre": "Name", "valor": 1000, "descripcion": "short phrase"}}
+    ],
+    "outro": "subscribe CTA 10-15 words",
+    "hashtags": "#shorts #top #ranking #viral",
+    "tags_seo": "top ranking, viral, 2026",
+    "descripcion": "SEO description with CTA"
+}}"""
+            for groq_model in ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]:
+                try:
+                    print(f"[*] Trying Groq: {groq_model}...")
+                    groq_client = _get_groq_client()
+                    response = groq_client.chat.completions.create(
+                        model=groq_model,
+                        messages=[{"role": "user", "content": prompt_groq}],
+                        temperature=0.7,
+                        max_tokens=3000,
+                    )
+                    response_text = response.choices[0].message.content
+                    print(f"[OK] Groq {groq_model} responded")
+                    break
+                except Exception as groq_err:
+                    print(f"[WARN] Groq {groq_model} failed: {groq_err}")
+                    continue
         else:
             raise
+
+    if not response_text:
+        raise Exception("No response from any model")
 
     try:
         json_match = re.search(r'\{.*\}', response_text, re.DOTALL)
         content = json.loads(json_match.group())
-    except:
+    except Exception as parse_err:
+        print(f"[ERROR] JSON parse failed: {parse_err}")
+        print(f"[DEBUG] Response preview: {response_text[:300]}")
         content = None
 
     if not content or "items" not in content:

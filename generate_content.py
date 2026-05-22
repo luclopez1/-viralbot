@@ -442,6 +442,33 @@ def generate_speech_with_edge_tts(text: str, output_path: str):
         return generate_speech_with_gtts(text, output_path)
 
 
+def wrap_srt_lines(srt_path: str, max_chars: int = 28):
+    """Parte líneas largas del SRT en varias líneas reales para que no se salgan del frame."""
+    import textwrap
+    try:
+        with open(srt_path, "r", encoding="utf-8") as f:
+            content = f.read()
+        # Normalizar saltos de línea Windows (\r\n) a Unix (\n)
+        content = content.replace("\r\n", "\n").replace("\r", "\n")
+        blocks = content.strip().split("\n\n")
+        new_blocks = []
+        for block in blocks:
+            lines = block.strip().split("\n")
+            if len(lines) >= 3:
+                # lines[0] = índice, lines[1] = timestamp, lines[2:] = texto
+                text = " ".join(lines[2:])
+                # Partir en líneas reales (SRT usa \n, no \N)
+                wrapped = textwrap.fill(text, width=max_chars, break_long_words=False)
+                new_blocks.append(f"{lines[0]}\n{lines[1]}\n{wrapped}")
+            else:
+                new_blocks.append(block)
+        with open(srt_path, "w", encoding="utf-8") as f:
+            f.write("\n\n".join(new_blocks) + "\n")
+        print(f"[OK] SRT reformateado: max {max_chars} chars/linea")
+    except Exception as e:
+        print(f"[WARN] No se pudo reformatear SRT: {e}")
+
+
 def download_images_from_pexels(topic: str, count: int = 3):
     """
     Descarga imágenes libres de Pexels relacionadas al tema
